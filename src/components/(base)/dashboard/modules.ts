@@ -12,6 +12,7 @@ export type DashboardModule = {
 };
 
 export const DASHBOARD_MODULES: DashboardModule[] = [
+  /*
   {
     id: "observatorio",
     title: "Observatorio",
@@ -21,6 +22,8 @@ export const DASHBOARD_MODULES: DashboardModule[] = [
     href: "/siget/observatorio",
     allowedRoles: ["super", "admin", "observatorio"],
   },
+  */
+  /*
   {
     id: "memoria-labores",
     title: "Memoria de",
@@ -30,6 +33,7 @@ export const DASHBOARD_MODULES: DashboardModule[] = [
     href: "/siget/memoria-labores",
     allowedRoles: ["super", "admin", "comunicacion"],
   },
+  */
   {
     id: "perfil",
     title: "Gestión de",

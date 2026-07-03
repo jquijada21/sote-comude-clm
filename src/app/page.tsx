@@ -1,5 +1,5 @@
-import { PublicHome } from "@/components/(base)/(home)/PublicHome";
+import { redirect } from "next/navigation";
 
 export default function HomePage() {
-  return <PublicHome />;
+  redirect("/login");
 }
