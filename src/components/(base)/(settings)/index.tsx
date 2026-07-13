@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAppSettings, useUpdateAppSettings } from "./hooks";
 import { Settings, Shield, Key, Loader2 } from "lucide-react";
+import GlobalSettingsSection from "./global/GlobalSettingsSection";
 
 const toggleClassName =
   "w-11 h-6 bg-muted border border-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-background after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-background after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-celeste-trifinio dark:peer-checked:bg-celeste-trifinio";
@@ -126,6 +127,7 @@ export default function AppSettings() {
           </label>
         </div>
       </div>
+      <GlobalSettingsSection />
     </div>
   );
 }

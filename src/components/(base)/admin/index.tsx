@@ -42,8 +42,8 @@ export async function AdminPanel() {
           </div>
           <p className="text-sm md:text-base text-muted-foreground max-w-2xl pl-0.5">
             {isSuperOrAdmin
-              ? "Gestione dispositivos, usuarios y configuraciones del sistema SIGET desde un solo lugar."
-              : "Gestione usuarios del sistema SIGET."}
+              ? "Gestione dispositivos, usuarios y configuraciones del sistema SOTE-COMUDE desde un solo lugar."
+              : "Gestione usuarios del sistema SOTE-COMUDE."}
           </p>
         </div>
 

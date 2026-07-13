@@ -90,11 +90,11 @@ export default function LogoTrifinioLogin({
           <div className="absolute inset-x-[-20%] inset-y-[-10%] bg-white/50 dark:bg-transparent blur-[60px] -z-10 rounded-[100px]" />
         )}
 
-        <div className="flex flex-row items-center justify-center gap-5 w-full">
+        <div className="flex flex-col items-center justify-center gap-4 w-full">
           <motion.div variants={logoVariants} className="shrink-0">
             <Image
-              src="/trifinio/logo.png"
-              alt="Plan Trifinio"
+              src="/sote/logo.png"
+              alt="COMUDE Concepción Las Minas"
               width={100}
               height={100}
               className="w-[92px] md:w-[100px] h-auto object-contain"
@@ -110,31 +110,23 @@ export default function LogoTrifinioLogin({
           >
             <motion.h1
               variants={titleVariants}
-              className="font-black whitespace-nowrap text-azul-trifinio dark:text-white leading-[0.95]"
-              style={{ fontFamily: "'Arial Black', sans-serif", fontSize: "1.75rem" }}
+              className="font-black text-azul-trifinio dark:text-white leading-[1] whitespace-nowrap text-[clamp(12px,4.5vw,1.5rem)] md:text-[1.5rem]"
+              style={{ fontFamily: "'Arial Black', sans-serif" }}
             >
-              Plan Trifinio
+              Sistema de Organización<br />Territorial Estratégica
             </motion.h1>
-
-            <motion.p
-              variants={sloganVariants}
-              className="font-bold italic mt-1 text-azul-trifinio dark:text-white leading-tight"
-              style={{ fontFamily: "Arial, sans-serif", fontSize: "1.1rem" }}
-            >
-              &ldquo;Agua sin fronteras&rdquo;
-            </motion.p>
 
             <motion.div
               variants={lineVariants}
-              className="w-full h-[2px] mt-2 bg-azul-trifinio dark:bg-white origin-center"
+              className="w-[105%] h-[2px] mt-2 bg-azul-trifinio dark:bg-white origin-center"
             />
 
             <motion.p
-              variants={countriesVariants}
-              className="font-semibold mt-2 text-azul-trifinio dark:text-white whitespace-nowrap text-[clamp(8px,2.35vw,0.6rem)] tracking-wide sm:tracking-[0.15em]"
+              variants={sloganVariants}
+              className="font-bold italic mt-2 text-azul-trifinio dark:text-white leading-tight text-[0.75rem] md:text-[1.1rem]"
               style={{ fontFamily: "Arial, sans-serif" }}
             >
-              El Salvador&ensp;•&ensp;Guatemala&ensp;•&ensp;Honduras
+              COMUDE Concepción Las Minas
             </motion.p>
           </motion.div>
         </div>

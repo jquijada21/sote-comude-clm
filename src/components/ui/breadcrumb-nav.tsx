@@ -60,15 +60,7 @@ export function BreadcrumbNav() {
           layout
           className="flex items-center gap-2 text-[9px] md:text-base font-medium text-muted-foreground overflow-hidden md:pt-1"
         >
-          <motion.div layout="position">
-            <Link
-              href="/"
-              className={cn(crumbIconLink, "mr-1")}
-              title="Ir al inicio"
-            >
-              <ArrowLeft className={cn("size-4 md:size-5", iconMotion, "group-hover:-translate-x-1")} />
-            </Link>
-          </motion.div>
+
 
           <motion.div layout="position" className="flex items-center">
             <span
@@ -83,7 +75,9 @@ export function BreadcrumbNav() {
     );
   }
 
-  const segments = pathname.split("/").filter((item) => item !== "");
+  const rawSegments = pathname.split("/").filter((item) => item !== "");
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const segments = rawSegments.filter(seg => !isUUID.test(seg));
 
   const parentPath =
     segments.length > 1 ? `/${segments.slice(0, -1).join("/")}` : "/siget";

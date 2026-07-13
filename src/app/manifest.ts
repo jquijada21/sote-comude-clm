@@ -2,10 +2,10 @@ import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "SIGET - Sistema Integral de Gestión Trifinio",
-    short_name: "SIGET",
+    name: "SOTE - Sistema de Organización Territorial Estratégica",
+    short_name: "COMUDE",
     description:
-      "Sistema Integral de Gestión Trifinio para la optimización de operaciones y mejora de la eficiencia.",
+      "Sistema de Organización Territorial Estratégica para la optimización de operaciones y mejora de la eficiencia.",
     start_url: "/",
     display: "standalone",
     orientation: "portrait",

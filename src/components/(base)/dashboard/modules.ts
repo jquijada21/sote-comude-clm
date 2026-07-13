@@ -46,7 +46,7 @@ export const DASHBOARD_MODULES: DashboardModule[] = [
     id: "admin",
     title: "Ajustes",
     subtitle: "Admin",
-    desc: "Panel de administración del sistema SIGET.",
+    desc: "Panel de administración del sistema SOTE-COMUDE.",
     animatedIcon: "plusmrxr",
     href: "/siget/admin",
     requiresAdmin: true,
@@ -57,7 +57,7 @@ export const OBSERVATORIO_MENU_OPTIONS = [
   {
     id: "movilidad-humana",
     title: "Movilidad Humana",
-    desc: "Visualización de datos y estadísticas regionales del SIGET.",
+    desc: "Visualización de datos y estadísticas regionales del SOTE-COMUDE.",
     href: "/siget/observatorio",
     animatedIcon: "qqvpjphn",
   },

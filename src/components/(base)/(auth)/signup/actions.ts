@@ -6,16 +6,9 @@ import { authSchema } from "./schemas";
 import { canAssignRole } from "@/components/(base)/(users)/usuarios/lib/permissions";
 
 export async function getOrganizaciones() {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("obs_organizaciones")
-    .select("id, nombre")
-    .order("nombre");
-  if (error) {
-    console.error("[getOrganizaciones]", error);
-    return [];
-  }
-  return data as { id: string; nombre: string }[];
+  // Los módulos de observatorio han sido eliminados.
+  // Retornamos un array vacío para evitar consultar una tabla inexistente.
+  return [];
 }
 
 function getAdminClient() {

@@ -619,7 +619,7 @@ export default function Menu({ isOpen, setIsOpen, user }: MenuProps) {
                 </MenuSection>
 
                 {(observatorioModule || mainModules.length > 0) && (
-                    <MenuSection label="Módulos SIGET" variant="modules">
+                    <MenuSection label="Módulos SOTE-COMUDE" variant="modules">
                       {observatorioModule && (
                         <MenuAccordion
                           id="menu-observatorio"
@@ -725,7 +725,7 @@ export default function Menu({ isOpen, setIsOpen, user }: MenuProps) {
         <div className={cn("px-6 py-4", !(user && realRole === "super") && "mt-auto")}>
           <div className="flex flex-col items-center justify-center gap-1">
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-400">
-              © 2026 SIGET
+              © 2026 SOTE-COMUDE
             </p>
             <div className="text-xs font-bold uppercase tracking-widest text-zinc-600 dark:text-zinc-400 flex items-center gap-1 mt-1">
               Powered by{" "}

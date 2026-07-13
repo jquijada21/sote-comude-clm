@@ -66,7 +66,7 @@ export function ContactSection() {
                       WhatsApp
                     </p>
                     <p className="text-sm lg:text-lg text-inherit">
-                      Asistencia SIGET
+                      Asistencia SOTE-COMUDE
                     </p>
                   </div>
                 </div>
@@ -101,7 +101,7 @@ export function ContactSection() {
         className="text-center mt-auto space-y-1"
       >
         <p className="text-xs font-bold uppercase tracking-widest opacity-40">
-          © 2026 SIGET
+          © 2026 SOTE-COMUDE
         </p>
         <p className="text-xs font-bold uppercase tracking-widest">
           Desarrollado por{" "}
@@ -111,7 +111,7 @@ export function ContactSection() {
             rel="noopener noreferrer"
             className="hover:underline cursor-pointer transition-all inline-block"
           >
-            <AuroraText>SIGET | Gestión Inteligente</AuroraText>
+            <AuroraText>SOTE-COMUDE | Gestión Inteligente</AuroraText>
           </a>
         </p>
       </motion.div>

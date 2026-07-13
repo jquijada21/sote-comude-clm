@@ -21,19 +21,7 @@ export default function AnimacionLogoTrifinio({ isOpen, onClose }: AnimacionLogo
           className="fixed inset-0 z-[1000000] flex items-center justify-center bg-white/70 dark:bg-background/80 backdrop-blur-[20px] cursor-pointer p-4 lg:p-12 overflow-hidden"
           style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh' }}
         >
-          <motion.button
-            initial={{ opacity: 0, rotate: -90 }}
-            animate={{ opacity: 1, rotate: 0 }}
-            className="absolute cursor-pointer top-8 right-8 p-3 rounded-full bg-black/10 dark:bg-white/10 text-azul-trifinio dark:text-white hover:bg-black/20 dark:hover:bg-white/20 transition-colors z-20"
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-          </motion.button>
+
 
           <motion.div
             initial={{ scale: 1.8, opacity: 0 }}
@@ -42,7 +30,7 @@ export default function AnimacionLogoTrifinio({ isOpen, onClose }: AnimacionLogo
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="w-full h-full flex items-center justify-center pointer-events-none"
           >
-            <div className="pointer-events-auto flex flex-row items-center justify-center gap-4 sm:gap-6 lg:gap-8 w-fit px-4 sm:px-8">
+            <div className="pointer-events-auto flex flex-col md:flex-row items-center justify-center gap-4 sm:gap-6 lg:gap-8 w-fit px-4 sm:px-8 max-w-full">
               <motion.div
                 initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
                 animate={{ opacity: 1, scale: 1, rotate: 0 }}
@@ -50,8 +38,8 @@ export default function AnimacionLogoTrifinio({ isOpen, onClose }: AnimacionLogo
                 className="flex-shrink-0"
               >
                 <Image
-                  src="/trifinio/logo.png"
-                  alt="Plan Trifinio"
+                  src="/sote/logo.png"
+                  alt="COMUDE Concepción Las Minas"
                   width={250}
                   height={250}
                   className="w-[120px] lg:w-[250px] h-auto object-contain"
@@ -63,29 +51,19 @@ export default function AnimacionLogoTrifinio({ isOpen, onClose }: AnimacionLogo
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ staggerChildren: 0.12, delayChildren: 0.05 }}
-                className="flex flex-col items-center justify-center text-center py-2 relative shrink-0"
+                className="flex flex-col items-center justify-center text-center py-2 relative shrink-0 max-w-full"
               >
                 <motion.h1
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ type: "spring", stiffness: 40, damping: 18, duration: 1.3 }}
-                  className="font-black whitespace-nowrap text-azul-trifinio dark:text-white leading-[0.95]"
-                  style={{ fontFamily: "'Arial Black', sans-serif", fontSize: "clamp(2rem, 6vw, 5rem)" }}
+                  className="font-black text-azul-trifinio dark:text-white leading-[1] whitespace-nowrap"
+                  style={{ fontFamily: "'Arial Black', sans-serif", fontSize: "clamp(1.1rem, 4vw, 4rem)" }}
                 >
-                  Plan Trifinio
+                  Sistema de Organización<br />Territorial Estratégica
                 </motion.h1>
 
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ type: "spring", stiffness: 50, damping: 16, duration: 1.1 }}
-                  className="font-bold italic mt-1 text-azul-trifinio dark:text-white leading-tight"
-                  style={{ fontFamily: "Arial, sans-serif", fontSize: "clamp(1rem, 3vw, 2.5rem)" }}
-                >
-                  &ldquo;Agua sin fronteras&rdquo;
-                </motion.p>
-
-                <div className="flex flex-col items-center w-fit">
+                <div className="flex flex-col items-center w-[105%]">
                   <motion.div
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: 1 }}
@@ -94,13 +72,13 @@ export default function AnimacionLogoTrifinio({ isOpen, onClose }: AnimacionLogo
                   />
 
                   <motion.p
-                    initial={{ opacity: 0, y: 5 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
-                    className="font-semibold mt-2 text-azul-trifinio dark:text-white"
-                    style={{ fontFamily: "Arial, sans-serif", fontSize: "clamp(0.6rem, 1.5vw, 1.2rem)", letterSpacing: "0.18em" }}
+                    transition={{ type: "spring", stiffness: 50, damping: 16, duration: 1.1 }}
+                    className="font-bold italic mt-2 text-azul-trifinio dark:text-white leading-tight"
+                    style={{ fontFamily: "Arial, sans-serif", fontSize: "clamp(1rem, 3vw, 2.5rem)" }}
                   >
-                    El Salvador&ensp;•&ensp;Guatemala&ensp;•&ensp;Honduras
+                    COMUDE Concepción Las Minas
                   </motion.p>
                 </div>
               </motion.div>

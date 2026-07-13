@@ -26,15 +26,16 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   themeColor: "#000000",
+  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {
-  title: "SIGET - Plan Trifinio",
-  description: "Sistema Integral de Gestión - Plan Trifinio",
+  title: "SOTE - COMUDE Concepción Las Minas",
+  description: "Sistema de Organización Territorial Estratégica",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "SIGET - Plan Trifinio",
+    title: "SOTE - COMUDE Concepción Las Minas",
   },
   icons: {
     icon: "/apple-touch-icon.png",

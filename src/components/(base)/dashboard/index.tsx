@@ -16,9 +16,12 @@ import LogoTrifinioMobile from "@/components/(SIGET)/logo/LogoTrifinio-mobile";
 import VerPerfil from "@/components/(base)/(users)/profile/VerPerfil";
 import PassKeysModal from "@/components/(base)/layout/modals/PassKeysModal";
 import { useAppSettings } from "@/components/(base)/(settings)/hooks";
+import GestorActividades from "@/components/(comude)/actividades/GestorActividades";
 import {
   User as UserIcon,
   KeyRound,
+  Sparkles,
+  LayoutDashboard,
 } from "lucide-react";
 import {
   DASHBOARD_MODULES,
@@ -78,258 +81,31 @@ export function Dashboard() {
   };
 
   const CardsGrid = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full lg:flex lg:flex-nowrap lg:justify-center lg:items-stretch">
-      {visibleModules.map((mod, index) => {
-        const isActive = isMobile && activeId === mod.id;
-        const isFirstMobile = isMobile && index === 0;
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="relative flex flex-col items-center justify-center px-4 py-6 sm:p-10 lg:p-14 bg-white/80 dark:bg-black/40 backdrop-blur-2xl rounded-[2rem] sm:rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] text-center w-full sm:w-[90%] max-w-none mx-auto transition-all group overflow-hidden"
+    >
+      {/* Decorative gradient orb */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-gradient-to-b from-celeste-trifinio/20 to-transparent blur-3xl -z-10" />
 
-        return (
-          <motion.div
-            key={mod.id}
-            className={[
-              "cursor-pointer w-full h-auto min-h-[400px] lg:h-[380px] lg:w-[280px] xl:w-[300px] lg:flex-none relative",
-              isFirstMobile ? "-mt-[20%]" : "",
-            ]
-              .join(" ")
-              .trim()}
-            id={`${mod.id}-card`}
-            initial="idle"
-            whileHover="hover"
-            animate={isActive ? "active" : "idle"}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            {mod.id === "perfil" ? (
-              <div className="group flex flex-col border border-border dark:border-white/10 overflow-hidden h-full w-full rounded-2xl bg-card transition-all duration-500 hover:border-azul-trifinio hover:-translate-y-2">
-                <AnimatePresence mode="wait">
-                  {expandedPerfil ? (
-                    <motion.div
-                      key="perfil-expanded"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.4, ease: "easeInOut" }}
-                      className="w-full h-full min-h-[300px] flex flex-col justify-center items-center p-6 relative z-10 bg-transparent rounded-[inherit] overflow-hidden"
-                    >
-                      <div className="absolute top-0 left-0 w-full h-[calc(100%-70px)] bg-gradient-to-t from-azul-trifinio to-celeste-trifinio pointer-events-none z-0 rounded-t-[inherit]" />
-                      <button
-                        onClick={() => setExpandedPerfil(false)}
-                        className="absolute bottom-0 left-0 w-full h-[70px] flex justify-center items-center z-10 cursor-pointer hover:bg-accent/60 transition-colors"
-                      >
-                        <span className="flex items-center gap-2 text-azul-trifinio font-black uppercase text-xs tracking-[0.25em]">
-                          ← Volver
-                        </span>
-                      </button>
-                      <motion.div
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                          duration: 0.4,
-                          delay: 0.15,
-                          ease: "easeOut",
-                        }}
-                        className="relative z-10 w-full flex flex-col gap-3 pb-[40px]"
-                      >
-                        <button
-                          onClick={() => setIsProfileOpen(true)}
-                          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-white/30 bg-white/15 hover:bg-white/25 transition-all cursor-pointer text-left"
-                        >
-                          <UserIcon className="size-5 shrink-0 text-white" />
-                          <div>
-                            <p className="text-sm font-bold text-white">
-                              Mi Perfil
-                            </p>
-                            <p className="text-[10px] text-white/70">
-                              Ver y editar perfil
-                            </p>
-                          </div>
-                        </button>
-                        {passkeysEnabled && (
-                          <button
-                            onClick={() => setIsPasskeysOpen(true)}
-                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-white/30 bg-white/15 hover:bg-white/25 transition-all cursor-pointer text-left"
-                          >
-                            <KeyRound className="size-5 shrink-0 text-white/80" />
-                            <div>
-                              <p className="text-sm font-bold text-white">
-                                Ingreso Seguro
-                              </p>
-                              <p className="text-[10px] text-white/70">
-                                Administrar dispositivos
-                              </p>
-                            </div>
-                          </button>
-                        )}
-                      </motion.div>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="perfil-normal"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.4, ease: "easeInOut" }}
-                      onClick={() => setExpandedPerfil(true)}
-                      className="w-full h-full min-h-[300px] flex flex-col justify-center items-center p-6 relative z-10 bg-transparent rounded-[inherit] overflow-hidden cursor-pointer"
-                    >
-                      <div className="absolute top-0 left-0 w-full h-[calc(100%-70px)] origin-bottom scale-y-0 bg-gradient-to-t from-azul-trifinio to-celeste-trifinio transition-transform duration-500 ease-[cubic-bezier(0.33,1,0.68,1)] group-hover:scale-y-100 pointer-events-none z-0 rounded-t-[inherit]" />
-                      <div className="absolute bottom-0 left-0 w-full h-[70px] flex justify-center items-center z-10 transition-all duration-500 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0">
-                        <span className="flex items-center gap-2 text-celeste-trifinio dark:text-foreground font-black uppercase text-xs tracking-[0.25em]">
-                          Ver opciones
-                        </span>
-                      </div>
-                      <div className="w-full h-full flex flex-col justify-center items-center relative z-10 pb-[40px]">
-                        <div className="relative z-10 w-full flex justify-center mb-4">
-                          <div
-                            className={cn(
-                              "size-[90px] flex items-center justify-center transition-transform duration-700 ease-out group-hover:-translate-y-4",
-                              DASHBOARD_ICON_PLATE_CLASS,
-                            )}
-                          >
-                            <AnimatedIcon
-                              iconKey={mod.animatedIcon}
-                              target={`#${mod.id}-card`}
-                              size={90}
-                              speed={1.5}
-                            />
-                          </div>
-                        </div>
-                        <div className="relative z-10 w-full flex flex-col items-start text-left space-y-4 transition-transform duration-700 group-hover:-translate-y-2">
-                          <h3 className="text-[1.6rem] lg:text-[1.85rem] font-black tracking-tighter text-foreground group-hover:text-white uppercase leading-none w-full break-words transition-colors duration-500">
-                            {mod.title}
-                            <br />
-                            <span className="text-celeste-trifinio group-hover:text-white/90 transition-colors duration-500">
-                              {mod.subtitle}
-                            </span>
-                          </h3>
-                          <p className="text-[14px] lg:text-[15px] text-muted-foreground group-hover:text-white/80 font-bold italic leading-tight pr-2 transition-colors duration-500">
-                            {mod.desc}
-                          </p>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ) : (
-              <div
-                onClick={() => handleCardClick(mod.id, mod.href)}
-                className="group flex flex-col border border-border dark:border-white/10 overflow-hidden h-full w-full rounded-2xl transition-[border-color] duration-500 cursor-pointer bg-card"
-                style={{
-                  borderColor: isActive ? "#2c5f9b" : undefined,
-                }}
-              >
-                <div className="w-full h-full min-h-[300px] flex flex-col justify-center items-center p-6 outline-none relative z-10 rounded-[inherit] overflow-hidden">
-                  <motion.div
-                    variants={{
-                      idle: { scaleY: 0 },
-                      hover: { scaleY: 1 },
-                      active: { scaleY: 1 },
-                    }}
-                    transition={{ duration: 0.5, ease: [0.33, 1, 0.68, 1] }}
-                    className="absolute top-0 left-0 w-full h-[calc(100%-70px)] origin-bottom bg-gradient-to-t from-azul-trifinio to-celeste-trifinio pointer-events-none z-0 rounded-t-[inherit]"
-                  />
-                  <div className="absolute inset-0 rounded-[inherit] border border-border dark:border-white/10 pointer-events-none z-20" />
-                  <div className="absolute bottom-0 left-0 w-full h-[70px] flex justify-center items-center z-10">
-                    <motion.span
-                      variants={{
-                        idle: { opacity: 0, y: 16 },
-                        hover: { opacity: 1, y: 0 },
-                        active: { opacity: 1, y: 0 },
-                      }}
-                      className={[
-                        "flex items-center gap-2 font-black uppercase text-xs tracking-[0.25em] transition-colors duration-500",
-                        isActive
-                          ? "text-celeste-trifinio"
-                          : "text-celeste-trifinio dark:text-foreground",
-                      ].join(" ")}
-                    >
-                      {isActive
-                        ? "Toca de nuevo para entrar"
-                        : "Haz click para entrar"}
-                    </motion.span>
-                  </div>
-                  <motion.div
-                    className="w-full h-full flex flex-col justify-center items-center relative z-10 pb-[40px]"
-                    variants={{
-                      idle: { opacity: 1 },
-                      hover: { opacity: 1 },
-                      active: { opacity: [1, 0.4, 1] },
-                    }}
-                    transition={{
-                      duration: 1.4,
-                      repeat: isActive ? Infinity : 0,
-                      ease: "easeInOut",
-                    }}
-                  >
-                    <div className="relative z-10 w-full flex justify-center mb-4">
-                      <motion.div
-                        variants={{
-                          idle: { y: 0 },
-                          hover: { y: -16 },
-                          active: { y: -16 },
-                        }}
-                        className={cn(
-                          "size-[90px] flex items-center justify-center transition-transform duration-700",
-                          DASHBOARD_ICON_PLATE_CLASS,
-                        )}
-                      >
-                        <AnimatedIcon
-                          iconKey={mod.animatedIcon}
-                          target={`#${mod.id}-card`}
-                          size={90}
-                          speed={1.5}
-                        />
-                      </motion.div>
-                    </div>
-                    <div className="relative z-10 w-full flex flex-col items-start text-left space-y-4">
-                      <motion.h3
-                        variants={{
-                          idle: { y: 0 },
-                          hover: { y: -8 },
-                          active: { y: -8 },
-                        }}
-                        className="text-[1.6rem] lg:text-[1.85rem] font-black tracking-tighter uppercase leading-none w-full break-words transition-colors duration-500"
-                      >
-                        <span
-                          className="text-foreground group-hover:text-white transition-colors duration-500"
-                          style={{ color: isActive ? "#ffffff" : undefined }}
-                        >
-                          {mod.title}
-                        </span>
-                        <br />
-                        <span
-                          className="text-celeste-trifinio group-hover:text-white/90 transition-colors duration-500"
-                          style={{
-                            color: isActive
-                              ? "rgba(255,255,255,0.9)"
-                              : undefined,
-                          }}
-                        >
-                          {mod.subtitle}
-                        </span>
-                      </motion.h3>
-                      <motion.p
-                        variants={{
-                          idle: { y: 0 },
-                          hover: { y: -8 },
-                          active: { y: -8 },
-                        }}
-                        className="text-[14px] lg:text-[15px] text-muted-foreground group-hover:text-white/80 font-bold italic leading-tight pr-2 transition-colors duration-500"
-                        style={{
-                          color: isActive ? "rgba(255,255,255,0.8)" : undefined,
-                        }}
-                      >
-                        {mod.desc}
-                      </motion.p>
-                    </div>
-                  </motion.div>
-                </div>
-              </div>
-            )}
-          </motion.div>
-        );
-      })}
-    </div>
+
+      <h2 className="text-2xl sm:text-3xl lg:text-5xl font-black text-azul-trifinio dark:text-white mb-4 sm:mb-6 tracking-tight">
+        ¡Bienvenido a <span className="text-transparent bg-clip-text bg-gradient-to-r from-azul-trifinio to-celeste-trifinio">SOTE<span className="hidden sm:inline">-</span><br className="block sm:hidden" />COMUDE</span>!
+      </h2>
+      
+      <p className="text-muted-foreground font-medium text-base sm:text-lg lg:text-xl mb-6 sm:mb-8 max-w-xl leading-relaxed">
+        El Sistema de Organización Territorial Estratégica te da la bienvenida. 
+        <br className="hidden sm:block" />
+        Para comenzar a trabajar, explora los módulos en el menú lateral.
+      </p>
+
+      {/* Actividades COMUDE */}
+      <div className="w-full text-left">
+        <GestorActividades userId={user?.id} effectiveRole={effectiveRole} />
+      </div>
+    </motion.div>
   );
 
   return (
@@ -353,8 +129,8 @@ export function Dashboard() {
 
         <div className="w-full overflow-hidden">
           <motion.img
-            src="/trifinio/hero-background2.jpg"
-            alt="Plan Trifinio"
+            src="/sote/hero-background2.jpg"
+            alt="COMUDE Concepción Las Minas"
             style={{
               y: useTransform(scrollY, [0, 800], [0, 150]),
               scale: bgScale,
@@ -363,7 +139,7 @@ export function Dashboard() {
           />
         </div>
 
-        <div className="relative w-full px-4 pt-8 pb-20">
+        <div className="relative w-full px-2 pt-8 pb-20">
           <div className={cn("absolute inset-0", DASHBOARD_DOTTED_BG_CLASS)} />
           <div className="relative z-10">
             <CardsGrid />
@@ -376,7 +152,7 @@ export function Dashboard() {
           <motion.div
             className="absolute inset-0 bg-cover bg-center origin-center"
             style={{
-              backgroundImage: "url('/trifinio/hero-background2.jpg')",
+              backgroundImage: "url('/sote/hero-background2.jpg')",
               scale: bgScale,
             }}
           />

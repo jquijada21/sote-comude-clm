@@ -102,8 +102,8 @@ export default function LogoTrifinioMobile({
         <div className="flex flex-row items-center justify-between gap-2 sm:gap-6 w-full px-2 sm:px-6">
           <motion.div variants={logoVariants} className="flex-shrink-0">
             <Image
-              src="/trifinio/logo.png"
-              alt="Plan Trifinio"
+              src="/sote/logo.png"
+              alt="COMUDE Concepción Las Minas"
               width={150}
               height={150}
               className="w-[90px] sm:w-[110px] h-auto object-contain"
@@ -119,31 +119,23 @@ export default function LogoTrifinioMobile({
           >
             <motion.h1
               variants={titleVariants}
-              className={cn("font-black whitespace-nowrap leading-[0.95]", textClass)}
-              style={{ fontFamily: "'Arial Black', sans-serif", fontSize: "clamp(1.8rem, 6vw, 3.5rem)" }}
+              className={cn("font-black leading-[1] whitespace-nowrap", textClass)}
+              style={{ fontFamily: "'Arial Black', sans-serif", fontSize: "clamp(0.85rem, 4vw, 3rem)" }}
             >
-              Plan Trifinio
+              Sistema de Organización<br />Territorial Estratégica
             </motion.h1>
-
-            <motion.p
-              variants={sloganVariants}
-              className={cn("font-bold italic mt-1 leading-tight", textClass)}
-              style={{ fontFamily: "Arial, sans-serif", fontSize: "clamp(1rem, 3.5vw, 2.2rem)" }}
-            >
-              &ldquo;Agua sin fronteras&rdquo;
-            </motion.p>
 
             <motion.div
               variants={lineVariants}
-              className={cn("w-full h-[1px] sm:h-[2px] mt-2 origin-center", lineClass)}
+              className={cn("w-[105%] h-[1px] sm:h-[2px] mt-2 origin-center", lineClass)}
             />
 
             <motion.p
-              variants={countriesVariants}
-              className={cn("font-semibold mt-2", textClass)}
-              style={{ fontFamily: "Arial, sans-serif", fontSize: "clamp(0.6rem, 1.5vw, 1.1rem)", letterSpacing: "0.15em" }}
+              variants={sloganVariants}
+              className={cn("font-bold italic mt-2 leading-tight", textClass)}
+              style={{ fontFamily: "Arial, sans-serif", fontSize: "clamp(0.6rem, 2.5vw, 2.2rem)" }}
             >
-              El Salvador&ensp;•&ensp;Guatemala&ensp;•&ensp;Honduras
+              COMUDE Concepción Las Minas
             </motion.p>
           </motion.div>
         </div>

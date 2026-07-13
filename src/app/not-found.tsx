@@ -16,7 +16,7 @@ export default function NotFound() {
         </h1>
         <p className="text-muted-foreground mb-6 text-sm">
           Lo sentimos, la ruta que intenta consultar no existe en el sistema de{" "}
-          <strong>SIGET</strong>
+          <strong>SOTE</strong>
         </p>
         <Link
           href="/siget"

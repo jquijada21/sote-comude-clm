@@ -29,7 +29,7 @@ export default function ConditionalFooter() {
           className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-4"
         >
           <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">
-            © 2026 SIGET
+            © 2026 SOTE-COMUDE
           </p>
           <div className="hidden md:block w-px h-3 bg-border" />
           <div className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1">
