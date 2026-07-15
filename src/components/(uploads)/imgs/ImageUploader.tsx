@@ -5,14 +5,14 @@ import { createClient } from "@/utils/supabase/client";
 import { Camera, ImagePlus, Loader2, Pencil, Trash2, Upload, X } from "lucide-react";
 import ImageEditorModal from "./ImageEditorModal";
 import {
-  ALLOWED_LOGO_TYPES,
+  ALLOWED_IMAGE_TYPES,
   generateStoragePath,
-  isAllowedLogoType,
+  isAllowedImageType,
   OBS_ORG_LOGOS_BUCKET,
   ORG_LOGO_SURFACE_CLASS,
   ORG_LOGO_DARK_PLATE_CLASS,
 } from "./constants";
-import { useOrgLogoDisplayUrl } from "./useOrgLogoDisplayUrl";
+import { useStorageDisplayUrl } from "./useStorageDisplayUrl";
 import { useUserContext } from "@/components/(base)/providers/UserProvider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -37,6 +37,9 @@ interface ImageUploaderProps {
   aspectLabel?: string;
   compact?: boolean;
   compactClassName?: string;
+  maxSizeMB?: number;
+  maxDimension?: number;
+  folderPath?: string;
 }
 
 function LogoViewerModal({
@@ -126,6 +129,9 @@ export default function ImageUploader({
   aspectLabel = "Proporción libre",
   compact = false,
   compactClassName,
+  maxSizeMB = 0.2,
+  maxDimension = 1024,
+  folderPath,
 }: ImageUploaderProps) {
   const compactLogoClass = compactClassName ?? COMPACT_LOGO_CLASS;
   const compactSurfaceClass = compactClassName ? ORG_LIST_LOGO_SURFACE : ORG_LOGO_SURFACE_CLASS;
@@ -142,7 +148,8 @@ export default function ImageUploader({
   const [viewerOpen, setViewerOpen] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
 
-  const { url: previewUrl, loading: previewLoading } = useOrgLogoDisplayUrl(
+  const { url: previewUrl, loading: previewLoading } = useStorageDisplayUrl(
+    bucketName,
     currentImagePath
   );
 
@@ -158,7 +165,7 @@ export default function ImageUploader({
   };
 
   const validateAndOpenEditor = (file: File) => {
-    if (!isAllowedLogoType(file.type)) {
+    if (!isAllowedImageType(file.type)) {
       toast.error("Solo se permiten imágenes JPEG y PNG.");
       return;
     }
@@ -188,7 +195,10 @@ export default function ImageUploader({
     setBusy(true);
     try {
       const supabase = createClient();
-      const path = generateStoragePath(file.type);
+      let path = generateStoragePath(file.type);
+      if (folderPath) {
+        path = `${folderPath}/${path}`;
+      }
 
       const { error: uploadError } = await supabase.storage
         .from(bucketName)
@@ -248,7 +258,7 @@ export default function ImageUploader({
         <input
           ref={fileInputRef}
           type="file"
-          accept={ALLOWED_LOGO_TYPES.join(",")}
+          accept={ALLOWED_IMAGE_TYPES.join(",")}
           className="hidden"
           onChange={handleFileChange}
           disabled={disabled || !canUpload || busy}
@@ -360,6 +370,8 @@ export default function ImageUploader({
             mimeType={editorMime}
             aspect={aspect}
             aspectLabel={aspectLabel}
+            maxSizeMB={maxSizeMB}
+            maxDimension={maxDimension}
             onClose={closeEditor}
             onApply={uploadFile}
           />
@@ -373,7 +385,7 @@ export default function ImageUploader({
       <input
         ref={fileInputRef}
         type="file"
-        accept={ALLOWED_LOGO_TYPES.join(",")}
+        accept={ALLOWED_IMAGE_TYPES.join(",")}
         className="hidden"
         onChange={handleFileChange}
         disabled={disabled || !canUpload || busy}
@@ -478,6 +490,8 @@ export default function ImageUploader({
           mimeType={editorMime}
           aspect={aspect}
           aspectLabel={aspectLabel}
+          maxSizeMB={maxSizeMB}
+          maxDimension={maxDimension}
           onClose={closeEditor}
           onApply={uploadFile}
         />

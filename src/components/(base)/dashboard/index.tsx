@@ -81,7 +81,7 @@ export function Dashboard() {
   };
 
   const CardsGrid = () => (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
@@ -91,15 +91,9 @@ export function Dashboard() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-gradient-to-b from-celeste-trifinio/20 to-transparent blur-3xl -z-10" />
 
 
-      <h2 className="text-2xl sm:text-3xl lg:text-5xl font-black text-azul-trifinio dark:text-white mb-4 sm:mb-6 tracking-tight">
-        ¡Bienvenido a <span className="text-transparent bg-clip-text bg-gradient-to-r from-azul-trifinio to-celeste-trifinio">SOTE<span className="hidden sm:inline">-</span><br className="block sm:hidden" />COMUDE</span>!
+      <h2 className="text-[22px] sm:text-3xl lg:text-5xl font-black text-azul-trifinio dark:text-white mb-4 sm:mb-6 tracking-tight">
+        ¡Bienvenido a <span className="text-transparent bg-clip-text bg-gradient-to-r from-azul-trifinio to-celeste-trifinio">SOTE-COMUDE</span>!
       </h2>
-      
-      <p className="text-muted-foreground font-medium text-base sm:text-lg lg:text-xl mb-6 sm:mb-8 max-w-xl leading-relaxed">
-        El Sistema de Organización Territorial Estratégica te da la bienvenida. 
-        <br className="hidden sm:block" />
-        Para comenzar a trabajar, explora los módulos en el menú lateral.
-      </p>
 
       {/* Actividades COMUDE */}
       <div className="w-full text-left">

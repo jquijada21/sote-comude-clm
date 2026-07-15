@@ -49,7 +49,9 @@ export default function MonthPicker({ year, month, onChange }: MonthPickerProps)
   }, [year, isOpen]);
 
   const handlePrevMonth = () => {
-    if (month === 0) {
+    if (month === -1) {
+      onChange(year - 1, -1);
+    } else if (month === 0) {
       onChange(year - 1, 11);
     } else {
       onChange(year, month - 1);
@@ -57,7 +59,9 @@ export default function MonthPicker({ year, month, onChange }: MonthPickerProps)
   };
 
   const handleNextMonth = () => {
-    if (month === 11) {
+    if (month === -1) {
+      onChange(year + 1, -1);
+    } else if (month === 11) {
       onChange(year + 1, 0);
     } else {
       onChange(year, month + 1);
@@ -84,7 +88,7 @@ export default function MonthPicker({ year, month, onChange }: MonthPickerProps)
           onClick={() => setIsOpen(!isOpen)}
           className="flex-1 px-4 py-2.5 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
         >
-          {MESES_COMPLETOS[month]} {year}
+          {month === -1 ? `Todo el año ${year}` : `${MESES_COMPLETOS[month]} ${year}`}
           <ChevronDown className="w-4 h-4 text-muted-foreground" />
         </button>
 
@@ -114,7 +118,18 @@ export default function MonthPicker({ year, month, onChange }: MonthPickerProps)
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
-              <span className="text-foreground dark:text-white font-bold text-base">{viewYear}</span>
+              <button
+                onClick={() => selectMonth(-1)}
+                className={cn(
+                  "px-3 py-1 rounded-lg transition-colors font-bold text-base",
+                  month === -1 && viewYear === year
+                    ? "bg-blue-600/20 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400"
+                    : "text-foreground dark:text-white hover:bg-black/5 dark:hover:bg-white/5"
+                )}
+                title="Mostrar todo el año"
+              >
+                {viewYear}
+              </button>
               <button
                 onClick={() => setViewYear((y) => y + 1)}
                 className="p-1 text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-white transition-colors"

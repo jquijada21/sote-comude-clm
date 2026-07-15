@@ -7,6 +7,8 @@ export type ActComude = {
   fecha: string;
   agenda: AgendaItem[];
   created_at: string;
+  actas: string | null;
+  img: string[] | null;
 };
 
 export type ActComudeParticipante = {

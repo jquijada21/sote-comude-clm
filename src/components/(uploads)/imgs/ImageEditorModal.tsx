@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import Cropper, { Area } from "react-easy-crop";
 import { RotateCcw, RotateCw, ZoomIn, ZoomOut, Loader2, X } from "lucide-react";
 import { cropImage, PixelCrop } from "./cropImage";
-import { compressLogoFile, isAllowedLogoType, MAX_LOGO_BYTES } from "./constants";
+import { compressImageFile, isAllowedImageType } from "./constants";
 import { toast } from "react-toastify";
 
 interface ImageEditorModalProps {
@@ -12,6 +12,8 @@ interface ImageEditorModalProps {
   mimeType: string;
   aspect?: number;
   aspectLabel?: string;
+  maxSizeMB?: number;
+  maxDimension?: number;
   onClose: () => void;
   onApply: (file: File) => Promise<void>;
 }
@@ -23,6 +25,8 @@ export default function ImageEditorModal({
   mimeType,
   aspect,
   aspectLabel = "Proporción libre",
+  maxSizeMB = 0.2,
+  maxDimension = 1024,
   onClose,
   onApply,
 }: ImageEditorModalProps) {
@@ -55,17 +59,17 @@ export default function ImageEditorModal({
     try {
       const outputMime = "image/png";
       const blob = await cropImage(imageSrc, croppedAreaPixels, rotation, outputMime);
-      let file = new File([blob], "logo.png", { type: outputMime });
+      let file = new File([blob], "image.png", { type: outputMime });
 
-      if (!isAllowedLogoType(file.type)) {
+      if (!isAllowedImageType(file.type)) {
         toast.error("Solo se permiten imágenes JPEG y PNG.");
         return;
       }
 
-      file = await compressLogoFile(file);
+      file = await compressImageFile(file, maxSizeMB, maxDimension);
 
-      if (file.size > MAX_LOGO_BYTES) {
-        toast.error("La imagen comprimida supera los 200 KB. Intente con una imagen más pequeña.");
+      if (file.size > maxSizeMB * 1024 * 1024) {
+        toast.error(`La imagen comprimida supera los ${maxSizeMB * 1024} KB. Intente con una imagen más pequeña.`);
         return;
       }
 
@@ -83,14 +87,9 @@ export default function ImageEditorModal({
     <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-          <div>
-            <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-              Editar imagen
-            </h3>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">
-              {aspectLabel} · Máx. 200 KB
-            </p>
-          </div>
+          <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
+            {aspectLabel}
+          </p>
           <button
             type="button"
             onClick={onClose}

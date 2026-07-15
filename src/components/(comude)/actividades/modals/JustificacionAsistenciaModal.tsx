@@ -9,7 +9,8 @@ interface JustificacionAsistenciaModalProps {
   onClose: () => void;
   onConfirm: (justificacion: string) => void;
   tipo: "entrada" | "salida";
-  horaRegistrada: string;
+  horaMostrar: string;
+  isTarde: boolean;
 }
 
 export default function JustificacionAsistenciaModal({
@@ -17,14 +18,15 @@ export default function JustificacionAsistenciaModal({
   onClose,
   onConfirm,
   tipo,
-  horaRegistrada,
+  horaMostrar,
+  isTarde,
 }: JustificacionAsistenciaModalProps) {
   const [justificacion, setJustificacion] = useState("");
 
   if (!isOpen) return null;
 
   const handleConfirm = () => {
-    if (justificacion.trim().length < 5) return;
+    if (isTarde && justificacion.trim().length < 5) return;
     onConfirm(justificacion.trim());
     setJustificacion("");
   };
@@ -42,16 +44,22 @@ export default function JustificacionAsistenciaModal({
         </div>
         
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">
-          Justificación de {tipoCapitalizado} Tarde
+          {isTarde 
+            ? `Justificación de ${tipoCapitalizado} Tarde` 
+            : tipo === "salida" ? "Confirmar Salida" : "Confirmar Asistencia"}
         </h2>
         
         <p className="text-sm text-gray-500 mb-6">
-          Está marcando {tipo} tarde ({horaRegistrada}). Justificación obligatoria.
+          {isTarde 
+            ? `Está marcando ${tipo} tarde (${horaMostrar}). Justificación obligatoria.`
+            : tipo === "salida"
+              ? `Está marcando salida. Puede añadir una nota opcional.`
+              : `Está marcando asistencia (${horaMostrar}). Puede añadir una nota opcional.`}
         </p>
 
         <textarea
           className="w-full min-h-[100px] p-3 rounded-lg border border-gray-300 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800/50 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-azul-trifinio resize-none mb-6 text-sm"
-          placeholder="Escriba su justificación aquí (requerido)..."
+          placeholder={isTarde ? "Escriba su justificación aquí (requerido)..." : "Añada una nota o justificación (opcional)..."}
           value={justificacion}
           onChange={(e) => setJustificacion(e.target.value)}
         />
@@ -59,7 +67,7 @@ export default function JustificacionAsistenciaModal({
         <div className="flex gap-3 justify-center w-full">
           <button
             onClick={handleConfirm}
-            disabled={justificacion.trim().length < 5}
+            disabled={isTarde && justificacion.trim().length < 5}
             className="flex-1 bg-azul-trifinio text-white font-medium py-2.5 rounded-lg hover:bg-azul-trifinio/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Sí, marcar {tipoCapitalizado}

@@ -11,7 +11,7 @@ export const ORG_LOGO_DARK_PLATE_CLASS =
 export const ORG_LOGO_IMG_GLOW_CLASS =
   "dark:[filter:drop-shadow(0_0_0.5px_rgba(255,255,255,1))_drop-shadow(0_0_1.5px_rgba(255,255,255,0.95))_drop-shadow(0_0_3px_rgba(255,255,255,0.55))]";
 
-export function getOrgLogoPublicUrl(path: string | null | undefined): string | null {
+export function getStoragePublicUrl(bucketName: string, path: string | null | undefined): string | null {
   if (!path) return null;
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
   if (!base) return null;
@@ -20,18 +20,15 @@ export function getOrgLogoPublicUrl(path: string | null | undefined): string | n
     .split("/")
     .map((segment) => encodeURIComponent(segment))
     .join("/");
-  return `${base}/storage/v1/object/public/${OBS_ORG_LOGOS_BUCKET}/${encodedPath}`;
+  return `${base}/storage/v1/object/public/${bucketName}/${encodedPath}`;
 }
 
-export const MAX_LOGO_SIZE_MB = 0.2;
-export const MAX_LOGO_BYTES = 200 * 1024;
-export const MAX_LOGO_DIMENSION = 1024;
-export const ALLOWED_LOGO_TYPES = ["image/jpeg", "image/png"] as const;
+export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"] as const;
 
-export type AllowedLogoType = (typeof ALLOWED_LOGO_TYPES)[number];
+export type AllowedImageType = (typeof ALLOWED_IMAGE_TYPES)[number];
 
-export function isAllowedLogoType(type: string): type is AllowedLogoType {
-  return (ALLOWED_LOGO_TYPES as readonly string[]).includes(type);
+export function isAllowedImageType(type: string): type is AllowedImageType {
+  return (ALLOWED_IMAGE_TYPES as readonly string[]).includes(type);
 }
 
 export function getExtFromMime(mime: string): string {
@@ -76,24 +73,32 @@ async function fileToJpeg(file: File, maxDim: number, quality: number): Promise<
   }
 }
 
-/** Comprime el logo hasta quedar bajo MAX_LOGO_BYTES (200 KB). */
-export async function compressLogoFile(file: File): Promise<File> {
+/** Comprime una imagen hasta quedar bajo maxSizeMB. */
+export async function compressImageFile(file: File, maxSizeMB: number = 0.2, maxDimension: number = 1024): Promise<File> {
   const { default: imageCompression } = await import("browser-image-compression");
 
-  const dimensions = [MAX_LOGO_DIMENSION, 768, 640, 512, 384, 320];
+  const MAX_BYTES = maxSizeMB * 1024 * 1024;
+  const dimensions = [
+    maxDimension,
+    Math.round(maxDimension * 0.75),
+    Math.round(maxDimension * 0.6),
+    Math.round(maxDimension * 0.5),
+    Math.round(maxDimension * 0.4),
+    Math.round(maxDimension * 0.3)
+  ];
 
   for (const maxDim of dimensions) {
     const compressed = await imageCompression(file, {
-      maxSizeMB: MAX_LOGO_SIZE_MB,
+      maxSizeMB: maxSizeMB,
       maxWidthOrHeight: maxDim,
       useWebWorker: true,
       fileType: file.type,
       initialQuality: 0.85,
     });
 
-    if (compressed.size <= MAX_LOGO_BYTES) {
+    if (compressed.size <= MAX_BYTES) {
       const ext = getExtFromMime(compressed.type);
-      return new File([compressed], `logo.${ext}`, { type: compressed.type });
+      return new File([compressed], `image.${ext}`, { type: compressed.type });
     }
   }
 
@@ -101,12 +106,12 @@ export async function compressLogoFile(file: File): Promise<File> {
   for (const maxDim of dimensions) {
     for (const quality of jpegQualities) {
       const jpeg = await fileToJpeg(file, maxDim, quality);
-      if (jpeg.size <= MAX_LOGO_BYTES) return jpeg;
+      if (jpeg.size <= MAX_BYTES) return jpeg;
     }
   }
 
   throw new Error(
-    "No se pudo comprimir la imagen por debajo de 200 KB. Intente recortar más o usar una imagen más simple."
+    `No se pudo comprimir la imagen por debajo de ${maxSizeMB * 1024} KB. Intente recortar más o usar una imagen más simple.`
   );
 }
 

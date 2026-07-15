@@ -16,6 +16,8 @@ import {
   registrarAsistencia,
   actualizarAgendaActividad,
   editarActividadComude,
+  actualizarActaActividad,
+  actualizarImagenesActividad,
 } from "./actions";
 
 // ----- QUERIES -----
@@ -33,7 +35,7 @@ export function useActividadById(id: string | null) {
     queryKey: ["actividad-comude", id],
     queryFn: () => getActividadById(id!),
     enabled: !!id,
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
@@ -42,7 +44,7 @@ export function useRegistrosAsistencia(actComudeId: string | null) {
     queryKey: ["registros-asistencia", actComudeId],
     queryFn: () => getRegistrosAsistencia(actComudeId!),
     enabled: !!actComudeId,
-    staleTime: 1000 * 30,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
@@ -113,6 +115,28 @@ export function useActualizarAgenda() {
   return useMutation<void, Error, { id: string; agenda: any[] }>({
     mutationFn: ({ id, agenda }) => actualizarAgendaActividad(id, agenda),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["actividades-comude"] });
+    },
+  });
+}
+
+export function useActualizarActa() {
+  const queryClient = useQueryClient();
+  return useMutation<void, Error, { id: string; actaUrl: string | null }>({
+    mutationFn: ({ id, actaUrl }) => actualizarActaActividad(id, actaUrl),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["actividades-comude"] });
+      queryClient.invalidateQueries({ queryKey: ["actividad-comude"] });
+    },
+  });
+}
+
+export function useActualizarImagenesActividad() {
+  const queryClient = useQueryClient();
+  return useMutation<void, Error, { id: string; imgPaths: string[] | null }>({
+    mutationFn: ({ id, imgPaths }) => actualizarImagenesActividad(id, imgPaths),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["actividad-comude", variables.id] });
       queryClient.invalidateQueries({ queryKey: ["actividades-comude"] });
     },
   });

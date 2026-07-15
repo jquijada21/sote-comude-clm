@@ -213,7 +213,7 @@ export default function CrearComude({ isOpen, onClose, actorRole, actividad }: C
             </div>
 
             {/* Tabs */}
-            <div className="flex justify-center sm:justify-start border-b border-border/50 px-2 sm:px-6 overflow-x-auto">
+            <div className="flex justify-center sm:justify-start border-b border-border/50 px-2 sm:px-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {TABS.map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}

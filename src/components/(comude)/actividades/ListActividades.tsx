@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Loader2, CalendarDays } from "lucide-react";
+import { Search, Loader2, CalendarDays, ArrowDownWideNarrow, ArrowUpNarrowWide } from "lucide-react";
 import { useActividades } from "./lib/hooks";
 import ActividadesItem from "./ActividadesItem";
 import MonthPicker from "./modals/MonthPicker";
@@ -17,12 +17,17 @@ export default function ListActividades({ userId, puedeGestionar, onCrearClick }
   const [year, setYear] = useState(() => new Date().getFullYear());
   const [month, setMonth] = useState(() => new Date().getMonth());
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const { data: actividades, isLoading, isError, refetch } = useActividades(year, month);
 
-  const actividadesFiltradas = (actividades || []).filter((act) => 
-    act.nombre.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const actividadesFiltradas = (actividades || [])
+    .filter((act) => act.nombre.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => {
+      const dateA = new Date(a.fecha).getTime();
+      const dateB = new Date(b.fecha).getTime();
+      return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+    });
 
   return (
     <div className="space-y-6">
@@ -38,15 +43,24 @@ export default function ListActividades({ userId, puedeGestionar, onCrearClick }
             className="w-full bg-black/5 dark:bg-black/20 border border-border/50 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-azul-trifinio/30 transition-all"
           />
         </div>
-        <div className="flex-shrink-0 w-full sm:w-auto">
-          <MonthPicker
-            year={year}
-            month={month}
-            onChange={(y, m) => {
-              setYear(y);
-              setMonth(m);
-            }}
-          />
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex-1 sm:flex-none">
+            <MonthPicker
+              year={year}
+              month={month}
+              onChange={(y, m) => {
+                setYear(y);
+                setMonth(m);
+              }}
+            />
+          </div>
+          <button
+            onClick={() => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+            className="flex items-center justify-center w-10 h-10 shrink-0 bg-black/5 dark:bg-black/20 border border-border/50 rounded-xl hover:bg-black/10 dark:hover:bg-black/30 transition-colors text-muted-foreground hover:text-foreground"
+            title={sortOrder === 'desc' ? "Ordenar ascendentemente" : "Ordenar descendentemente"}
+          >
+            {sortOrder === 'desc' ? <ArrowDownWideNarrow size={18} /> : <ArrowUpNarrowWide size={18} />}
+          </button>
         </div>
       </div>
 

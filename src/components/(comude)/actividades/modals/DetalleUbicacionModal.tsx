@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, MapPin, Clock } from "lucide-react";
+import { X, MapPin } from "lucide-react";
 import { ActComudeRegistro } from "../lib/zod";
 
 interface DetalleUbicacionModalProps {
@@ -21,6 +21,10 @@ export default function DetalleUbicacionModal({
   registroSalida,
 }: DetalleUbicacionModalProps) {
   const [mounted, setMounted] = useState(false);
+  const hasEntrada = !!registroEntrada;
+  const hasSalida = !!registroSalida;
+  
+  const [activeTab, setActiveTab] = useState<"entrada" | "salida">(hasEntrada ? "entrada" : "salida");
 
   useEffect(() => {
     setMounted(true);
@@ -29,158 +33,159 @@ export default function DetalleUbicacionModal({
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
-
-      const handleZoom = (e: WheelEvent) => {
-        if (e.ctrlKey || e.metaKey) {
-          e.preventDefault();
-        }
-      };
-
-      window.addEventListener("wheel", handleZoom, { passive: false });
-      return () => {
-        window.removeEventListener("wheel", handleZoom);
-        document.body.style.overflow = "auto";
-      };
+      setActiveTab(hasEntrada ? "entrada" : "salida");
+    } else {
+      document.body.style.overflow = "auto";
     }
-  }, [isOpen]);
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [isOpen, hasEntrada]);
 
   if (!mounted || !isOpen) return null;
 
-  const hasEntrada = !!registroEntrada;
-  const hasSalida = !!registroSalida;
+  const activeRegistro = activeTab === "entrada" ? registroEntrada : registroSalida;
+  
+  let mapUrl = "";
+  if (activeRegistro) {
+    const ubi = (activeRegistro as any).ubicacion;
+    if (ubi?.lat && ubi?.lng) {
+      mapUrl = `https://maps.google.com/maps?q=${ubi.lat},${ubi.lng}&t=k&z=18&ie=UTF8&iwloc=&output=embed`;
+    }
+  }
 
-  const renderCard = (registro: ActComudeRegistro, tipo: "entrada" | "salida") => {
-    const isEntrada = tipo === "entrada";
-    const accentColor = isEntrada ? "green" : "orange";
+  // Get common date from active record or any available
+  const referenceRecord = activeRegistro || registroEntrada || registroSalida;
+  let fechaFormateada = "";
+  if (referenceRecord) {
+    const d = new Date(referenceRecord.created_at);
+    fechaFormateada = d.toLocaleDateString("es-ES", { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
 
+  const renderCard = (registro: ActComudeRegistro | null, tipo: "entrada" | "salida") => {
+    if (!registro) return null;
+    const isActive = activeTab === tipo;
+    
     const fechaObj = new Date(registro.created_at);
-
-    // Formato: mar, 27/mar/26
-    const diaSem = fechaObj.toLocaleDateString("es-ES", { weekday: "short" }).replace(".", "");
-    const dia = fechaObj.getDate().toString().padStart(2, "0");
-    const mes = fechaObj.toLocaleDateString("es-ES", { month: "short" }).replace(".", "");
-    const anio = fechaObj.getFullYear().toString().slice(-2);
-    const fechaFormateada = `${diaSem}, ${dia}/${mes}/${anio}`;
-
-    // Formato: 10:22 AM
     const horaFormateada = fechaObj.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
     });
 
-    const ubi = (registro as any).ubicacion;
-    const latitud = ubi?.lat;
-    const longitud = ubi?.lng;
-    const hasLocation = latitud && longitud;
-
+    const hasLocation = !!(registro as any).ubicacion?.lat;
+    
     return (
-      <div
-        className={`py-5 px-4 sm:p-5 flex flex-col h-full rounded-none sm:rounded-xl border-y sm:border border-x-0 sm:border-x border-${accentColor}-100 dark:border-${accentColor}-900/40 bg-${accentColor}-50/30 dark:bg-${accentColor}-900/10 relative overflow-hidden transition-all hover:shadow-lg`}
+      <div 
+        onClick={() => setActiveTab(tipo)}
+        className={`p-4 rounded-xl cursor-pointer transition-all border ${
+          isActive 
+            ? "border-blue-600/50 bg-[#1c2128]/80" 
+            : "border-transparent bg-[#1e1e1e]/60 hover:bg-[#252525]"
+        }`}
       >
-        {/* Etiqueta Superior */}
-        <div
-          className={`absolute top-0 right-0 px-3 py-1 font-bold uppercase tracking-widest rounded-none sm:rounded-bl-xl text-[10px] z-10
-          ${
-            isEntrada
-              ? "bg-green-100 text-green-900 dark:bg-green-200 dark:text-green-950"
-              : "bg-orange-100 text-orange-900 dark:bg-orange-200 dark:text-orange-950"
-          }`}
-        >
-          {isEntrada ? "Entrada" : "Salida"}
+        <div className="flex justify-between items-center mb-1">
+          <h4 className={`font-bold text-base capitalize ${isActive ? "text-blue-400" : "text-white"}`}>{tipo}</h4>
+          <span className="text-xs font-mono text-gray-400 bg-black/40 px-2 py-1 rounded-md">{horaFormateada}</span>
         </div>
+        
+        {registro.notas && (
+          <p className="text-[13px] text-gray-300 mt-2 mb-2">
+            <span className="text-gray-400">{tipo === "entrada" ? "Entrada Tarde" : "Nota de Salida"}:</span> {registro.notas}
+          </p>
+        )}
 
-        <div className="flex flex-col pt-2 relative flex-1">
-          <div className="flex items-center gap-3 p-3 bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-100 dark:border-neutral-800 shadow-sm z-10">
-            <Clock size={16} className={isEntrada ? "text-green-500" : "text-orange-500"} />
-            <div className="flex flex-col">
-              <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider mb-0.5">
-                Hora de registro
-              </span>
-              <div className="flex items-baseline gap-2">
-                <span className="text-base font-black text-gray-900 dark:text-white leading-none">
-                  {horaFormateada}
-                </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase leading-none">
-                  - {fechaFormateada}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {hasLocation ? (
-            <>
-              {/* MAPA EMBEBIDO */}
-              <div className="-mx-4 sm:mx-0 mt-4 flex-1 min-h-[240px] rounded-none sm:rounded-xl overflow-hidden border-y sm:border border-gray-200 dark:border-neutral-800 shadow-inner bg-gray-100 dark:bg-neutral-900 animate-in fade-in zoom-in-95 duration-500" style={{ touchAction: "none" }}>
-                <iframe
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0, minHeight: "160px", pointerEvents: "auto" }}
-                  loading="lazy"
-                  allowFullScreen
-                  referrerPolicy="no-referrer-when-downgrade"
-                  src={`https://maps.google.com/maps?q=${latitud},${longitud}&t=k&z=18&ie=UTF8&iwloc=&output=embed`}
-                ></iframe>
-              </div>
-            </>
-          ) : (
-            <div className="w-full mt-4 h-40 rounded-xl bg-gray-100 dark:bg-neutral-900 border border-dashed border-gray-200 dark:border-neutral-800 flex items-center justify-center">
-              <p className="text-xs text-gray-500 text-center px-4">
-                Ubicación GPS no disponible
-              </p>
-            </div>
-          )}
+        <div className={`flex items-center gap-2 mt-3 text-xs ${isActive ? "text-gray-400" : "text-gray-500"}`}>
+          <MapPin size={14} />
+          <span>{hasLocation ? "Ubicación registrada" : "Sin ubicación GPS"}</span>
         </div>
       </div>
     );
   };
 
   const modalContent = (
-    <div 
-      className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center p-[5px] sm:p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200"
-    >
-      <div className="bg-white dark:bg-[#111111] w-full max-w-6xl h-[calc(100dvh-max(env(safe-area-inset-top),_24px))] sm:h-auto max-h-[calc(100dvh-max(env(safe-area-inset-top),_24px))] sm:max-h-[95vh] rounded-t-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-gray-100 dark:border-neutral-800 flex flex-col scale-in-center overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        
-        {/* HEADER */}
-        <div className="sticky top-0 z-20 px-4 sm:px-8 py-4 sm:py-5 border-b border-gray-100 dark:border-neutral-800 flex justify-between items-center bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md">
-          <div className="flex items-center gap-4">
-            <div className="p-2.5 rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 shadow-inner">
-              <MapPin size={20} />
-            </div>
-            <div>
-              <h3 className="font-bold text-base text-gray-900 dark:text-[#f4ebc3] tracking-tight">
-                Detalles de Asistencia
-              </h3>
-              <p className="text-sm text-gray-500 font-medium">
-                Asignado a: <span className="text-gray-700 dark:text-gray-300">{participanteNombre}</span>
-              </p>
-            </div>
+    <div className="fixed inset-0 z-[99999] flex flex-col md:flex-row bg-[#111] animate-in fade-in duration-200">
+      
+      {/* MAP BACKGROUND (PC) / TOP MAP (MOBILE) */}
+      <div className="absolute inset-0 z-0 hidden md:block bg-neutral-900">
+        {mapUrl ? (
+          <iframe
+            width="100%"
+            height="100%"
+            style={{ border: 0 }}
+            loading="lazy"
+            allowFullScreen
+            referrerPolicy="no-referrer-when-downgrade"
+            src={mapUrl}
+          ></iframe>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-500">
+            Ubicación no disponible
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-all active:scale-95"
-            title="Cerrar modal"
-          >
+        )}
+      </div>
+
+      {/* SIDEBAR (PC) / TOP HALF (MOBILE) */}
+      <div className="relative z-10 w-full md:w-[400px] flex flex-col bg-[#111111] md:bg-[#111111]/95 md:backdrop-blur-xl border-r border-neutral-800/80 shadow-2xl shrink-0">
+        
+        {/* Sidebar Info */}
+        <div className="relative px-5 pt-12 pb-5 md:py-5 border-b border-neutral-800/60">
+          {/* Header mobile (Close button) */}
+          <button onClick={onClose} className="md:hidden absolute top-12 right-5 p-1.5 text-gray-400 hover:text-white transition-colors">
             <X size={20} />
           </button>
+
+          <p className="text-blue-500 font-bold text-[11px] tracking-wider uppercase mb-1.5">
+            Asistencia
+          </p>
+          <h2 className="text-lg md:text-xl font-bold text-white leading-tight mb-0.5 pr-8">
+            {participanteNombre}
+          </h2>
+          <p className="text-xs text-gray-400 capitalize">
+            {fechaFormateada}
+          </p>
         </div>
 
-        {/* CONTENIDO */}
-        <div
-          className={`px-0 sm:px-6 py-4 sm:py-6 grid gap-2 sm:gap-6 flex-1 ${
-            hasEntrada && hasSalida ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 sm:max-w-sm sm:mx-auto w-full"
-          }`}
-        >
+        {/* Cards List */}
+        <div className="px-4 py-5 space-y-3">
           {hasEntrada && renderCard(registroEntrada, "entrada")}
           {hasSalida && renderCard(registroSalida, "salida")}
-
+          
           {!hasEntrada && !hasSalida && (
-            <div className="col-span-full py-10 text-center text-gray-500">
-              No hay registros de ubicación.
-            </div>
+            <p className="text-center text-gray-500 text-sm mt-10">
+              No hay registros disponibles.
+            </p>
           )}
         </div>
       </div>
+
+      {/* Mobile Map View (fills remaining space) */}
+      <div className="md:hidden flex-1 relative w-full bg-neutral-900 border-t border-neutral-800">
+        {mapUrl ? (
+          <iframe
+            width="100%"
+            height="100%"
+            style={{ border: 0 }}
+            loading="lazy"
+            allowFullScreen
+            referrerPolicy="no-referrer-when-downgrade"
+            src={mapUrl}
+          ></iframe>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-600 bg-neutral-900">
+            Ubicación no disponible
+          </div>
+        )}
+      </div>
+
+      {/* CLOSE BUTTON (PC) */}
+      <button 
+        onClick={onClose} 
+        className="hidden md:flex absolute top-6 right-6 z-20 p-3 bg-black/60 hover:bg-black/90 text-white rounded-full backdrop-blur-md transition-all shadow-lg border border-white/10"
+      >
+        <X size={24} />
+      </button>
+
     </div>
   );
 

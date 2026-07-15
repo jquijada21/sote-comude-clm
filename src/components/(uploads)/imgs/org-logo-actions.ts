@@ -1,7 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/utils/supabase/admin";
-import { OBS_ORG_LOGOS_BUCKET, getOrgLogoPublicUrl } from "./constants";
+import { OBS_ORG_LOGOS_BUCKET, getStoragePublicUrl } from "./constants";
 
 /** URL de visualización del logo (signed URL vía service role, sin depender de RLS del cliente). */
 export async function getOrgLogoDisplayUrl(path: string | null): Promise<string | null> {
@@ -18,5 +18,5 @@ export async function getOrgLogoDisplayUrl(path: string | null): Promise<string 
     console.error("[getOrgLogoDisplayUrl] admin signed URL failed:", err);
   }
 
-  return getOrgLogoPublicUrl(path);
+  return getStoragePublicUrl(OBS_ORG_LOGOS_BUCKET, path);
 }

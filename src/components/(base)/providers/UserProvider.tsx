@@ -4,8 +4,8 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { User } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
 
-/** Intervalo de refresco automático de sesión (ms) */
-const REFRESH_INTERVAL_MS = 60_000;
+/** Intervalo de refresco automático de sesión (ms) - 5 minutos */
+const REFRESH_INTERVAL_MS = 300_000;
 
 interface UserContextValue {
   user: User | null;
@@ -65,21 +65,7 @@ export function UserProvider({
     };
   }, [supabase]);
 
-  // Refrescar al volver a la pestaña (visibilitychange)
-  useEffect(() => {
-    if (!user) return;
-
-    const handleVisibility = () => {
-      if (document.visibilityState === "visible") {
-        refreshUser();
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibility);
-    return () => document.removeEventListener("visibilitychange", handleVisibility);
-  }, [user, refreshUser]);
-
-  // Refresco periódico cada 60s para detectar cambios de rol sin recargar
+  // Refrescar al volver a la pestaña eliminado temporalmente para evitar spam en alt-tab  // Refresco periódico cada 60s para detectar cambios de rol sin recargar
   useEffect(() => {
     if (!user) return;
 

@@ -44,8 +44,13 @@ export async function getActividades(year?: number, month?: number): Promise<Act
   const currentYear = year || new Date().getFullYear();
   const currentMonth = month !== undefined ? month : new Date().getMonth();
 
-  const startDate = new Date(currentYear, currentMonth, 1).toISOString();
-  const endDate = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999).toISOString();
+  const startDate = month === -1 
+    ? new Date(currentYear, 0, 1).toISOString()
+    : new Date(currentYear, currentMonth, 1).toISOString();
+    
+  const endDate = month === -1
+    ? new Date(currentYear, 11, 31, 23, 59, 59, 999).toISOString()
+    : new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999).toISOString();
 
   const { data, error } = await supabase
     .from("act_comude")
@@ -205,12 +210,37 @@ export async function actualizarAgendaActividad(id: string, agenda: any[]): Prom
   revalidatePath("/siget");
 }
 
+/** Actualiza o guarda la URL del acta PDF en la base de datos */
+export async function actualizarActaActividad(id: string, actaUrl: string | null): Promise<void> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("act_comude")
+    .update({ actas: actaUrl })
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/siget");
+}
+
 /** Elimina una actividad COMUDE */
 export async function eliminarActividadComude(id: string): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase.from("act_comude").delete().eq("id", id);
   if (error) throw new Error(error.message);
-  revalidatePath("/siget");
+  revalidatePath("/(comude)/actividades");
+}
+
+export async function actualizarImagenesActividad(id: string, imgPaths: string[] | null) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("act_comude")
+    .update({ img: imgPaths })
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/(comude)/actividades");
 }
 
 import { getGlobalSettings } from "@/components/(base)/(settings)/global/actions";
@@ -240,11 +270,11 @@ export async function registrarAsistencia(values: RegistroAsistenciaValues): Pro
     const minDespues = settings.minutos_despues_permitidos * 60000;
     const minAntes = settings.minutos_antes_permitidos * 60000;
 
-    if (ahora < horaProgramada - minAntes) {
+    if (values.tipo_registro === "entrada" && ahora < horaProgramada - minAntes) {
       throw new Error("Es muy temprano para marcar asistencia");
     }
 
-    if (ahora > horaProgramada + minDespues && (!values.notas || values.notas.trim().length < 5)) {
+    if (values.tipo_registro === "entrada" && ahora > horaProgramada + minDespues && (!values.notas || values.notas.trim().length < 5)) {
       throw new Error("Se requiere una justificación válida para el registro tardío");
     }
   }
