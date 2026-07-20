@@ -76,6 +76,7 @@ export async function updateProfile(
     telefono_emergencia: formData.telefono_emergencia,
     rol: formData.rol,
     organizacion_id: formData.organizacion_id,
+    municipio_id: formData.municipio_id,
   };
 
   const profileData: Record<string, unknown> = Object.fromEntries(

@@ -9,6 +9,7 @@ export type ActComude = {
   created_at: string;
   actas: string | null;
   img: string[] | null;
+  municipio_id: number | null;
 };
 
 export type ActComudeParticipante = {

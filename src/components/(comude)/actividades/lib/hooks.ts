@@ -26,7 +26,7 @@ export function useActividades(year?: number, month?: number) {
   return useQuery<ActComudeConParticipantes[], Error>({
     queryKey: ["actividades-comude", year, month],
     queryFn: () => getActividades(year, month),
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
@@ -64,6 +64,22 @@ export function useEsParticipante(actComudeId: string | null, userId: string | n
       return !!data;
     },
     enabled: !!actComudeId && !!userId,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useSignedUrl(path: string | null, bucket: string = "portada_imagenes") {
+  const supabase = createClient();
+  return useQuery<string | null, Error>({
+    queryKey: ["signed-url", bucket, path],
+    queryFn: async () => {
+      if (!path) return null;
+      const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, 3600 * 24);
+      if (error) throw error;
+      return data?.signedUrl || null;
+    },
+    enabled: !!path,
+    staleTime: 1000 * 60 * 5, // 5 minutes cache
   });
 }
 

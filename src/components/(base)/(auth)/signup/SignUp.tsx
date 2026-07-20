@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
-import { getOrganizaciones } from "./actions";
+import { getOrganizaciones, getDepartamentos, getMunicipios, crearDepartamento, crearMunicipio } from "./actions";
 import { MagicCard } from "@/components/ui/magic-card";
 import {
   X,
@@ -20,6 +20,7 @@ import { useSignupLogic } from "./hooks";
 import { AnimatePresence, motion } from "framer-motion";
 import { generateStrongPassword } from "@/utils/general/password-generator";
 import { AuroraText } from "@/components/ui/aurora-text";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { useUser, useUserContext } from "@/components/(base)/providers/UserProvider";
 import {
   getManageableRoles,
@@ -112,19 +113,63 @@ export default function SignUp({
   const [organizaciones, setOrganizaciones] = useState<
     { id: string; nombre: string }[]
   >([]);
+  const [departamentos, setDepartamentos] = useState<{ id: number; nombre: string }[]>([]);
+  const [municipios, setMunicipios] = useState<{ id: number; nombre: string }[]>([]);
+  const [selectedDepartamento, setSelectedDepartamento] = useState<string>("");
+  const [selectedMunicipio, setSelectedMunicipio] = useState<string>("");
   const hasMovedToStep2 = useRef(false);
 
   useEffect(() => {
     if (isOpen) {
       getOrganizaciones().then(setOrganizaciones).catch(() => setOrganizaciones([]));
+      if (effectiveRole === "super") {
+        getDepartamentos().then(setDepartamentos).catch(() => setDepartamentos([]));
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, effectiveRole]);
+
+  useEffect(() => {
+    if (selectedDepartamento) {
+      getMunicipios(Number(selectedDepartamento)).then(setMunicipios).catch(() => setMunicipios([]));
+    } else {
+      setMunicipios([]);
+      setSelectedMunicipio("");
+    }
+  }, [selectedDepartamento]);
 
   useEffect(() => {
     if (isOpen && creatableRoles.length > 0 && !creatableRoles.includes(logic.rol)) {
       logic.setRol(creatableRoles[0]);
     }
   }, [isOpen, creatableRoles, logic.rol, logic.setRol]);
+
+  const handleAddDepartamento = async () => {
+    const nombre = window.prompt("Nombre del nuevo departamento:");
+    if (!nombre || nombre.trim().length === 0) return;
+    try {
+      const nuevo = await crearDepartamento(nombre.trim());
+      setDepartamentos((prev) => [...prev, nuevo].sort((a, b) => a.nombre.localeCompare(b.nombre)));
+      setSelectedDepartamento(String(nuevo.id));
+    } catch (e: any) {
+      alert("Error: " + e.message);
+    }
+  };
+
+  const handleAddMunicipio = async () => {
+    if (!selectedDepartamento) {
+      alert("Primero seleccione un departamento");
+      return;
+    }
+    const nombre = window.prompt("Nombre del nuevo municipio:");
+    if (!nombre || nombre.trim().length === 0) return;
+    try {
+      const nuevo = await crearMunicipio(Number(selectedDepartamento), nombre.trim());
+      setMunicipios((prev) => [...prev, nuevo].sort((a, b) => a.nombre.localeCompare(b.nombre)));
+      setSelectedMunicipio(String(nuevo.id));
+    } catch (e: any) {
+      alert("Error: " + e.message);
+    }
+  };
 
   const showOrganizacion = isObservatorioRole(logic.rol);
 
@@ -161,6 +206,8 @@ export default function SignUp({
     setPhoneNumber("");
     setCopied(false);
     setIsUsernameEdited(false);
+    setSelectedDepartamento("");
+    setSelectedMunicipio("");
     setStep(1);
     setSavedData({ user: "", pass: "" });
     hasMovedToStep2.current = false;
@@ -392,6 +439,55 @@ export default function SignUp({
                           ))}
                         </Select>
                       </div>
+                    )}
+
+                    {effectiveRole === "super" && (
+                      <>
+                        <div className="grid gap-2 z-20">
+                          <Label htmlFor="departamento_id">Departamento</Label>
+                          <SearchableSelect
+                            name="departamento_id"
+                            items={departamentos}
+                            value={selectedDepartamento}
+                            onChange={(val) => setSelectedDepartamento(val)}
+                            onAdd={async (nombre) => {
+                              try {
+                                const nuevo = await crearDepartamento(nombre);
+                                setDepartamentos((prev) => [...prev, nuevo].sort((a, b) => a.nombre.localeCompare(b.nombre)));
+                                setSelectedDepartamento(String(nuevo.id));
+                              } catch (e: any) {
+                                alert("Error: " + e.message);
+                              }
+                            }}
+                            placeholder="Buscar o agregar departamento..."
+                          />
+                        </div>
+                        
+                        <div className="grid gap-2 z-10">
+                          <Label htmlFor="municipio_id">Municipio</Label>
+                          <SearchableSelect
+                            name="municipio_id"
+                            items={municipios}
+                            value={selectedMunicipio}
+                            onChange={(val) => setSelectedMunicipio(val)}
+                            disabled={!selectedDepartamento || (municipios.length === 0 && !selectedDepartamento)}
+                            onAdd={async (nombre) => {
+                              if (!selectedDepartamento) {
+                                alert("Primero seleccione un departamento");
+                                return;
+                              }
+                              try {
+                                const nuevo = await crearMunicipio(Number(selectedDepartamento), nombre);
+                                setMunicipios((prev) => [...prev, nuevo].sort((a, b) => a.nombre.localeCompare(b.nombre)));
+                                setSelectedMunicipio(String(nuevo.id));
+                              } catch (e: any) {
+                                alert("Error: " + e.message);
+                              }
+                            }}
+                            placeholder="Buscar o agregar municipio..."
+                          />
+                        </div>
+                      </>
                     )}
 
                     <div className="grid gap-2">

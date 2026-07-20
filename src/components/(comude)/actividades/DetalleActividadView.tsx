@@ -22,10 +22,11 @@ import {
   Eye,
   Upload,
   ImagePlus,
+  MoreVertical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ActComudeConParticipantes, ActComudeRegistro } from "./lib/zod";
-import { useRegistrarAsistencia, useRegistrosAsistencia, useActualizarAgenda, useEliminarActividad, useActualizarActa, useActualizarImagenesActividad } from "./lib/hooks";
+import { useRegistrarAsistencia, useRegistrosAsistencia, useActualizarAgenda, useEliminarActividad, useActualizarActa, useActualizarImagenesActividad, useSignedUrl } from "./lib/hooks";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import DetalleUbicacionModal from "./modals/DetalleUbicacionModal";
@@ -34,33 +35,22 @@ import JustificacionAsistenciaModal from "./modals/JustificacionAsistenciaModal"
 import { JustificacionRegistro, TipoRegistro } from "./lib/types";
 import ImageUploader from "@/components/(uploads)/imgs/ImageUploader";
 import { useStorageDisplayUrl } from "@/components/(uploads)/imgs/useStorageDisplayUrl";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import dynamic from "next/dynamic";
 
 const ActaVisorModal = dynamic(() => import("./modals/ActaVisorModal"), { ssr: false });
-import { useGlobalSettings } from "@/components/(base)/(settings)/global/hooks";
+import { useConfiguracionMunicipio } from "@/components/(base)/(settings)/municipio/hooks";
 import { createClient } from "@/utils/supabase/client";
 
 function StorageImage({ path }: { path: string }) {
-  const [url, setUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: url, isLoading } = useSignedUrl(path);
 
-  useEffect(() => {
-    async function fetchUrl() {
-      if (!path) {
-        setLoading(false);
-        return;
-      }
-      const supabase = createClient();
-      const { data, error } = await supabase.storage.from("portada_imagenes").createSignedUrl(path, 3600 * 24);
-      if (data?.signedUrl) {
-        setUrl(data.signedUrl);
-      }
-      setLoading(false);
-    }
-    fetchUrl();
-  }, [path]);
-
-  if (loading) return <div className="w-full h-full bg-muted animate-pulse rounded-lg" />;
+  if (isLoading) return <div className="w-full h-full bg-muted animate-pulse rounded-lg" />;
   if (!url) return <div className="w-full h-full bg-muted rounded-lg flex items-center justify-center text-muted-foreground"><ImagePlus className="w-6 h-6 opacity-30" /></div>;
   return <img src={url} alt="Evidencia" className="w-full h-full object-contain rounded-lg transition-transform duration-500" />;
 }
@@ -77,30 +67,13 @@ function EvidenciaVisorModal({
   initialIndex: number;
 }) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const [url, setUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (isOpen) setCurrentIndex(initialIndex);
   }, [isOpen, initialIndex]);
 
   const path = paths[currentIndex];
-
-  useEffect(() => {
-    if (!isOpen || !path) return;
-    setLoading(true);
-    let active = true;
-    async function fetchUrl() {
-      const supabase = createClient();
-      const { data } = await supabase.storage.from("portada_imagenes").createSignedUrl(path, 3600);
-      if (active && data?.signedUrl) {
-        setUrl(data.signedUrl);
-      }
-      if (active) setLoading(false);
-    }
-    fetchUrl();
-    return () => { active = false; };
-  }, [path, isOpen]);
+  const { data: url, isLoading } = useSignedUrl(isOpen ? path : null);
 
   if (!isOpen) return null;
 
@@ -115,11 +88,11 @@ function EvidenciaVisorModal({
           </button>
         </div>
 
-        <div className="flex-1 flex items-center justify-center p-4 bg-black/5">
-          {loading || !url ? (
+        <div className="flex-1 flex items-center justify-center p-4 bg-black/5 min-h-0">
+          {isLoading || !url ? (
             <Loader2 className="w-8 h-8 text-muted-foreground/40 animate-spin" />
           ) : (
-            <img src={url} alt="Evidencia ampliada" className="max-w-full max-h-[70vh] sm:max-h-[75vh] object-contain rounded-lg shadow-xl" />
+            <img src={url} alt="Evidencia ampliada" className="max-w-full max-h-full object-contain rounded-lg shadow-xl" />
           )}
         </div>
 
@@ -212,6 +185,7 @@ interface ParticipanteRowProps {
   onVerMapa: () => void;
   cargandoGPS: boolean;
   isMuyTemprano?: boolean;
+  isPastDate: boolean;
 }
 
 function ParticipanteRow({
@@ -224,6 +198,7 @@ function ParticipanteRow({
   onVerMapa,
   cargandoGPS,
   isMuyTemprano,
+  isPastDate,
 }: ParticipanteRowProps) {
   const regEntrada = registros.find(
     (r) => r.usuario_id === participante.usuario_id && r.tipo_registro === "entrada"
@@ -236,7 +211,10 @@ function ParticipanteRow({
   const confirmado = !!regEntrada;
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-3 sm:px-4 py-3 rounded-xl bg-muted/40 border border-border/40">
+    <div className={cn(
+      "flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-3 sm:px-4 py-3 rounded-xl bg-muted/40",
+      esElUsuario ? "border-2 border-azul-trifinio shadow-none" : "border border-border/40"
+    )}>
       {/* Info de la persona */}
       <div className="flex items-start gap-3 min-w-0">
 
@@ -285,7 +263,7 @@ function ParticipanteRow({
       </div>
 
       {/* Botones para el propio usuario */}
-      {esElUsuario && (!regEntrada || !regSalida) && (
+      {esElUsuario && (!regEntrada || !regSalida) && !isPastDate && (
         <div className="w-full sm:w-auto shrink-0 flex justify-center mt-2 sm:mt-0">
           {!regEntrada ? (
             <button
@@ -328,6 +306,7 @@ export default function DetalleActividadView({
   const [nuevoPunto, setNuevoPunto] = useState("");
   const [editandoPuntoId, setEditandoPuntoId] = useState<string | null>(null);
   const [textoEdicion, setTextoEdicion] = useState("");
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [participanteMapa, setParticipanteMapa] = useState<{
     nombre: string;
     entrada: ActComudeRegistro | null;
@@ -345,8 +324,19 @@ export default function DetalleActividadView({
   
   const puedeGestionarFotos = effectiveRole === "super" || effectiveRole === "admin";
   
+  const isPastDate = (() => {
+    if (!actividad?.fecha) return false;
+    const actDate = new Date(actividad.fecha);
+    actDate.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return actDate < today;
+  })();
+
+  const canManageActive = puedeGestionar && !isPastDate;
+  
   // Estado para la justificación de asistencia tardía
-  const { data: globalSettings } = useGlobalSettings();
+  const { data: municipioSettings } = useConfiguracionMunicipio(actividad?.municipio_id);
   const [showJustificationModal, setShowJustificationModal] = useState(false);
   const [pendingTipoRegistro, setPendingTipoRegistro] = useState<"entrada" | "salida" | null>(null);
   const [isRegistroTarde, setIsRegistroTarde] = useState(false);
@@ -447,9 +437,16 @@ export default function DetalleActividadView({
 
   const handleEliminarEvidencia = async (pathToRemove: string) => {
     try {
+      const supabase = createClient();
+      
+      // Borrar archivo del bucket
+      const { error: storageError } = await supabase.storage.from("portada_imagenes").remove([pathToRemove]);
+      if (storageError) console.error("Error al borrar del bucket:", storageError);
+
       const currentImages = actividad.img || [];
       const newImages = currentImages.filter(p => p !== pathToRemove);
-      await actualizarImagenes({ id: actividad.id, imgPaths: newImages.length > 0 ? newImages : null });
+      
+      await actualizarImagenes({ id: actividad.id, imgPaths: newImages.length > 0 ? newImages : [] });
       toast.success("Imagen eliminada de la actividad.");
     } catch (err: unknown) {
       toast.error("Error al quitar la imagen de la actividad.");
@@ -542,15 +539,15 @@ export default function DetalleActividadView({
   };
 
   const handleRegistrar = async (tipo: "entrada" | "salida") => {
-    if (!actividad || !globalSettings) return;
+    if (!actividad || !municipioSettings) return;
     
     const ahora = new Date().getTime();
     const horaProgramada = new Date(actividad.fecha).getTime();
-    const minAntes = globalSettings.minutos_antes_permitidos * 60000;
-    const minDespues = globalSettings.minutos_despues_permitidos * 60000;
+    const minAntes = (municipioSettings.minutos_antes_permitidos ?? 0) * 60000;
+    const minDespues = (municipioSettings.minutos_despues_permitidos ?? 0) * 60000;
 
     if (tipo === "entrada" && ahora < horaProgramada - minAntes) {
-      toast.error(`Es muy temprano para marcar asistencia. Podrás hacerlo ${globalSettings.minutos_antes_permitidos} minutos antes del inicio.`);
+      toast.error(`Es muy temprano para marcar asistencia. Podrás hacerlo ${municipioSettings.minutos_antes_permitidos} minutos antes del inicio.`);
       return;
     }
 
@@ -682,8 +679,8 @@ export default function DetalleActividadView({
   if (!mounted || !actividad) return null;
 
   const hoy = esHoy(actividad.fecha);
-  const isMuyTemprano = globalSettings 
-    ? Date.now() < new Date(actividad.fecha).getTime() - (globalSettings.minutos_antes_permitidos * 60000)
+  const isMuyTemprano = municipioSettings 
+    ? Date.now() < new Date(actividad.fecha).getTime() - ((municipioSettings.minutos_antes_permitidos ?? 0) * 60000)
     : false;
   const encargados = actividad.act_comude_participantes.filter((p) => p.encargado);
   const integrantes = actividad.act_comude_participantes.filter((p) => !p.encargado);
@@ -856,104 +853,162 @@ export default function DetalleActividadView({
         {activeTab === "agenda" && (
           <div className="px-3 sm:px-6 py-4">
             
+            {/* Control personal de asistencia */}
+            {participanteYo && (
+              <div className="mb-8 border-b border-border/50 pb-6">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">
+                  Mi Asistencia
+                </p>
+                <ParticipanteRow
+                  participante={participanteYo}
+                  registros={registros}
+                  userId={userId}
+                  esActividadHoy={hoy}
+                  puedeGestionar={canManageActive}
+                  onRegistrar={handleRegistrar}
+                  cargandoGPS={cargandoGPS}
+                  isMuyTemprano={isMuyTemprano}
+                  isPastDate={isPastDate}
+                  onVerMapa={() => setParticipanteMapa({
+                    nombre: participanteYo.profiles?.nombre || "Sin nombre",
+                    entrada: registros.find(r => r.usuario_id === participanteYo.usuario_id && r.tipo_registro === "entrada") || null,
+                    salida: registros.find(r => r.usuario_id === participanteYo.usuario_id && r.tipo_registro === "salida") || null
+                  })}
+                  isMuyTemprano={isMuyTemprano}
+                />
+              </div>
+            )}
+
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">
               Agenda
             </p>
-            
-            {optimisticAgenda && optimisticAgenda.length > 0 ? (
-              <ul className="space-y-2 mb-4">
-                {optimisticAgenda.map((item, idx) => (
-                  <li key={item.id} className="flex items-start gap-2.5 text-sm group">
-                    <button
-                      onClick={() => handleToggleAgenda(item.id)}
-                      disabled={!puedeGestionar}
+
+            {/* Tabla de agenda */}
+            <div className="rounded-xl border border-border/50 overflow-hidden mb-4">
+              {/* Encabezado */}
+              <div className="grid grid-cols-[40px_32px_1fr_auto] items-center gap-0 bg-muted/60 border-b border-border/50 px-3 py-2">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide text-center">#</span>
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide text-center">✓</span>
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide pl-2">Punto</span>
+                {canManageActive && <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide text-center w-16">Acciones</span>}
+              </div>
+
+              {optimisticAgenda && optimisticAgenda.length > 0 ? (
+                <div className="divide-y divide-border/30">
+                  {optimisticAgenda.map((item, idx) => (
+                    <div
+                      key={item.id}
                       className={cn(
-                        "mt-0.5 shrink-0 flex items-center justify-center w-5 h-5 rounded-full border transition-all duration-200 shadow-sm",
-                        item.completado
-                          ? "bg-green-500 border-green-500 text-white shadow-green-500/30"
-                          : "border-muted-foreground/30 hover:border-azul-trifinio text-transparent hover:shadow-azul-trifinio/20",
-                        !isUpdatingAgenda && "hover:scale-110 active:scale-90"
+                        "grid grid-cols-[40px_32px_1fr_auto] items-center gap-0 px-3 py-2.5 transition-colors",
+                        idx % 2 === 0 ? "bg-background/60" : "bg-muted/20"
                       )}
                     >
-                      <Check className={cn("w-3.5 h-3.5 transition-all duration-300", item.completado ? "scale-100 opacity-100" : "scale-50 opacity-0")} />
-                    </button>
-                    <span className="font-semibold text-muted-foreground/70 min-w-[14px]">
-                      {idx + 1}.
-                    </span>
-                    
-                    {editandoPuntoId === item.id ? (
-                      <div className="flex-1 flex gap-2">
-                        <input
-                          type="text"
-                          value={textoEdicion}
-                          onChange={(e) => setTextoEdicion(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              handleGuardarEdicion(item.id);
-                            }
-                            if (e.key === "Escape") {
-                              setEditandoPuntoId(null);
-                            }
-                          }}
-                          className="flex-1 bg-muted/40 border border-border/50 text-sm rounded px-2 py-1 outline-none focus:ring-1 focus:ring-azul-trifinio/50 focus:border-azul-trifinio"
-                          autoFocus
-                        />
+                      {/* # */}
+                      <span className="text-xs font-semibold text-muted-foreground text-center">{idx + 1}</span>
+
+                      {/* Checkbox */}
+                      <div className="flex justify-center">
                         <button
-                          onClick={() => handleGuardarEdicion(item.id)}
-                          disabled={!textoEdicion.trim() || isUpdatingAgenda}
-                          className="text-xs bg-azul-trifinio text-white px-2 rounded font-medium hover:bg-azul-trifinio/90"
+                          onClick={() => handleToggleAgenda(item.id)}
+                          disabled={!canManageActive}
+                          className={cn(
+                            "shrink-0 flex items-center justify-center w-5 h-5 rounded-full border transition-all duration-200",
+                            item.completado
+                              ? "bg-green-500 border-green-500 text-white"
+                              : "border-muted-foreground/40 hover:border-azul-trifinio text-transparent",
+                            !isUpdatingAgenda && canManageActive && "hover:scale-110 active:scale-90"
+                          )}
                         >
-                          Guardar
-                        </button>
-                        <button
-                          onClick={() => setEditandoPuntoId(null)}
-                          className="text-xs bg-muted text-muted-foreground px-2 rounded hover:bg-muted/80"
-                        >
-                          Cancelar
+                          <Check className={cn("w-3 h-3 transition-all duration-300", item.completado ? "scale-100 opacity-100" : "scale-50 opacity-0")} />
                         </button>
                       </div>
-                    ) : (
-                      <span 
-                        onClick={() => puedeGestionar && handleToggleAgenda(item.id)}
-                        className={cn(
-                          "flex-1 transition-colors", 
-                          puedeGestionar ? "cursor-pointer hover:text-foreground" : ""
+
+                      {/* Título / Editor */}
+                      <div className="pl-2 min-w-0">
+                        {editandoPuntoId === item.id ? (
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={textoEdicion}
+                              onChange={(e) => setTextoEdicion(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") { e.preventDefault(); handleGuardarEdicion(item.id); }
+                                if (e.key === "Escape") { setEditandoPuntoId(null); }
+                              }}
+                              className="flex-1 bg-muted/40 border border-border/50 text-sm rounded px-2 py-1 outline-none focus:ring-1 focus:ring-azul-trifinio/50 focus:border-azul-trifinio"
+                              autoFocus
+                            />
+                            <button
+                              onClick={() => handleGuardarEdicion(item.id)}
+                              disabled={!textoEdicion.trim() || isUpdatingAgenda}
+                              className="text-xs bg-azul-trifinio text-white px-2 rounded font-medium hover:bg-azul-trifinio/90 shrink-0"
+                            >Guardar</button>
+                            <button
+                              onClick={() => setEditandoPuntoId(null)}
+                              className="text-xs bg-muted text-muted-foreground px-2 rounded hover:bg-muted/80 shrink-0"
+                            >Cancelar</button>
+                          </div>
+                        ) : (
+                          <span
+                            onClick={() => {
+                              setExpandedItems(prev => {
+                                const next = new Set(prev);
+                                if (next.has(item.id)) {
+                                  next.delete(item.id);
+                                } else {
+                                  next.add(item.id);
+                                }
+                                return next;
+                              });
+                            }}
+                            className={cn(
+                              "text-sm block transition-colors cursor-pointer font-medium text-foreground",
+                              !expandedItems.has(item.id) && "truncate"
+                            )}
+                          >
+                            {item.titulo}
+                          </span>
                         )}
-                      >
-                        {item.titulo}
-                      </span>
-                    )}
-                    {puedeGestionar && editandoPuntoId !== item.id && (
-                      <div className="flex items-center gap-1 ml-auto shrink-0 transition-opacity">
-                        <button
-                          onClick={() => {
-                            setEditandoPuntoId(item.id);
-                            setTextoEdicion(item.titulo);
-                          }}
-                          className="p-1 text-muted-foreground hover:text-azul-trifinio hover:bg-azul-trifinio/10 rounded"
-                          title="Editar punto"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleEliminarPunto(item.id)}
-                          className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded"
-                          title="Eliminar punto"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
                       </div>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground mb-4 italic">No hay puntos de agenda.</p>
-            )}
+
+                      {/* Acciones */}
+                      {canManageActive && editandoPuntoId !== item.id && (
+                        <div className="flex items-center justify-center w-16">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-colors outline-none focus:ring-2 focus:ring-azul-trifinio/20">
+                                <MoreVertical className="w-4 h-4" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-40 bg-background border border-border shadow-md z-50">
+                              <DropdownMenuItem
+                                onClick={() => { setEditandoPuntoId(item.id); setTextoEdicion(item.titulo); }}
+                                className="gap-2 cursor-pointer focus:bg-azul-trifinio/10 focus:text-azul-trifinio"
+                              >
+                                <Pencil className="w-4 h-4" />
+                                <span>Editar punto</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleEliminarPunto(item.id)}
+                                className="gap-2 cursor-pointer focus:bg-destructive/10 focus:text-destructive text-destructive"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                <span>Eliminar</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground italic px-4 py-4">No hay puntos de agenda.</p>
+              )}
+            </div>
 
             {/* Agregar punto */}
-            {puedeGestionar && (
+            {canManageActive && (
               <div className="flex gap-2 mb-6">
                 <input
                   type="text"
@@ -978,29 +1033,7 @@ export default function DetalleActividadView({
               </div>
             )}
 
-            {/* Control personal de asistencia */}
-            {participanteYo && (
-              <div className="mt-8 border-t border-border/50 pt-6">
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">
-                  Mi Asistencia
-                </p>
-                <ParticipanteRow
-                  participante={participanteYo}
-                  registros={registros}
-                  userId={userId}
-                  esActividadHoy={hoy}
-                  puedeGestionar={puedeGestionar}
-                  onRegistrar={handleRegistrar}
-                  cargandoGPS={cargandoGPS}
-                  onVerMapa={() => setParticipanteMapa({
-                    nombre: participanteYo.profiles?.nombre || "Sin nombre",
-                    entrada: registros.find(r => r.usuario_id === participanteYo.usuario_id && r.tipo_registro === "entrada") || null,
-                    salida: registros.find(r => r.usuario_id === participanteYo.usuario_id && r.tipo_registro === "salida") || null
-                  })}
-                  isMuyTemprano={isMuyTemprano}
-                />
-              </div>
-            )}
+
             {/* Evidencia / Fotos */}
             <div className="mt-8 border-t border-border/50 pt-6 pb-2">
               <div className="flex items-center justify-between mb-4">
@@ -1051,7 +1084,7 @@ export default function DetalleActividadView({
                       aspectLabel="Horizontal 4:3"
                       maxSizeMB={0.2}
                       maxDimension={1920}
-                      folderPath={actividad.id}
+                      folderPath={`comudes/municipio_${actividad.municipio_id}/actividad_${actividad.id}`}
                       compact={true}
                       compactClassName="w-full h-full rounded-lg border-2 border-dashed border-muted-foreground/20 hover:border-azul-trifinio/50 transition-colors"
                     />
@@ -1088,7 +1121,7 @@ export default function DetalleActividadView({
                     registros={registros}
                     userId={userId}
                     esActividadHoy={hoy}
-                    puedeGestionar={puedeGestionar}
+                    puedeGestionar={canManageActive}
                     onRegistrar={handleRegistrar}
                     cargandoGPS={cargandoGPS}
                     onVerMapa={() => setParticipanteMapa({
@@ -1097,6 +1130,7 @@ export default function DetalleActividadView({
                       salida: registros.find(r => r.usuario_id === p.usuario_id && r.tipo_registro === "salida") || null
                     })}
                     isMuyTemprano={isMuyTemprano}
+                    isPastDate={isPastDate}
                   />
                 ))}
               </div>
@@ -1120,7 +1154,7 @@ export default function DetalleActividadView({
                     registros={registros}
                     userId={userId}
                     esActividadHoy={hoy}
-                    puedeGestionar={puedeGestionar}
+                    puedeGestionar={canManageActive}
                     onRegistrar={handleRegistrar}
                     cargandoGPS={cargandoGPS}
                     onVerMapa={() => setParticipanteMapa({
@@ -1129,6 +1163,7 @@ export default function DetalleActividadView({
                       salida: registros.find(r => r.usuario_id === p.usuario_id && r.tipo_registro === "salida") || null
                     })}
                     isMuyTemprano={isMuyTemprano}
+                    isPastDate={isPastDate}
                   />
                 ))}
               </div>

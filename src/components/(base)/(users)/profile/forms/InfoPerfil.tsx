@@ -21,6 +21,10 @@ import { getOrganizaciones } from "@/components/(base)/(auth)/signup/actions";
 import { cn } from "@/lib/utils";
 import { Building2, Shield } from "lucide-react";
 import { InfoUser, type InfoUserRef } from "./InfoUser";
+import { getDepartamentos, getMunicipios, crearDepartamento, crearMunicipio } from "@/components/(base)/(auth)/signup/actions";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { createClient } from "@/utils/supabase/client";
+import { useUserContext } from "@/components/(base)/providers/UserProvider";
 
 const Label = ({
   className,
@@ -89,6 +93,7 @@ interface InfoPerfilProps {
 export const InfoPerfil = ({ userId, canEdit, onClose }: InfoPerfilProps) => {
   const { theme } = useTheme();
   const queryClient = useQueryClient();
+  const { effectiveRole } = useUserContext();
   const accesoRef = useRef<InfoUserRef>(null);
   const { profile: perfilData } = useProfile(userId, true);
   const [step, setStep] = useState(1);
@@ -99,17 +104,42 @@ export const InfoPerfil = ({ userId, canEdit, onClose }: InfoPerfilProps) => {
   const [organizaciones, setOrganizaciones] = useState<
     { id: string; nombre: string }[]
   >([]);
+  const [departamentos, setDepartamentos] = useState<{ id: number; nombre: string }[]>([]);
+  const [municipios, setMunicipios] = useState<{ id: number; nombre: string }[]>([]);
+  const [selectedDepartamento, setSelectedDepartamento] = useState<string>("");
 
   useEffect(() => {
     if (perfilData) {
       setFormData(perfilData);
       setHasChanges(false);
+
+      if (perfilData.municipio_id) {
+        const fetchDept = async () => {
+          const supabase = createClient();
+          const { data } = await supabase.from("lug_municipios").select("departamento_id").eq("id", perfilData.municipio_id).single();
+          if (data?.departamento_id) {
+            setSelectedDepartamento(String(data.departamento_id));
+          }
+        };
+        fetchDept();
+      }
     }
   }, [perfilData]);
 
   useEffect(() => {
     getOrganizaciones().then(setOrganizaciones).catch(() => setOrganizaciones([]));
-  }, []);
+    if (perfilData?.rol === "super" || formData?.rol === "super" || effectiveRole === "super") {
+      getDepartamentos().then(setDepartamentos).catch(() => setDepartamentos([]));
+    }
+  }, [perfilData?.rol, formData?.rol, effectiveRole]);
+
+  useEffect(() => {
+    if (selectedDepartamento) {
+      getMunicipios(Number(selectedDepartamento)).then(setMunicipios).catch(() => setMunicipios([]));
+    } else {
+      setMunicipios([]);
+    }
+  }, [selectedDepartamento]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>,
@@ -118,6 +148,41 @@ export const InfoPerfil = ({ userId, canEdit, onClose }: InfoPerfilProps) => {
     const { name, value } = e.target;
     setFormData((prev: any) => ({ ...prev, [name]: value }));
     setHasChanges(true);
+
+    if (name === "departamento_id") {
+       setSelectedDepartamento(value);
+       setFormData((prev: any) => ({ ...prev, municipio_id: "" }));
+    }
+  };
+
+  const handleAddDepartamento = async () => {
+    const nombre = window.prompt("Nombre del nuevo departamento:");
+    if (!nombre || nombre.trim().length === 0) return;
+    try {
+      const nuevo = await crearDepartamento(nombre.trim());
+      setDepartamentos((prev) => [...prev, nuevo].sort((a, b) => a.nombre.localeCompare(b.nombre)));
+      setSelectedDepartamento(String(nuevo.id));
+      setFormData((prev: any) => ({ ...prev, municipio_id: "" }));
+    } catch (e: any) {
+      alert("Error: " + e.message);
+    }
+  };
+
+  const handleAddMunicipio = async () => {
+    if (!selectedDepartamento) {
+      alert("Primero seleccione un departamento");
+      return;
+    }
+    const nombre = window.prompt("Nombre del nuevo municipio:");
+    if (!nombre || nombre.trim().length === 0) return;
+    try {
+      const nuevo = await crearMunicipio(Number(selectedDepartamento), nombre.trim());
+      setMunicipios((prev) => [...prev, nuevo].sort((a, b) => a.nombre.localeCompare(b.nombre)));
+      setFormData((prev: any) => ({ ...prev, municipio_id: String(nuevo.id) }));
+      setHasChanges(true);
+    } catch (e: any) {
+      alert("Error: " + e.message);
+    }
   };
 
   const handleSave = async () => {
@@ -331,6 +396,63 @@ export const InfoPerfil = ({ userId, canEdit, onClose }: InfoPerfilProps) => {
             </Select>
           </div>
         </div>
+
+        {(perfilData?.rol === "super" || formData?.rol === "super" || effectiveRole === "super") && (
+          <>
+            <div className="z-20">
+              <Label>Departamento</Label>
+              <SearchableSelect
+                items={departamentos}
+                value={selectedDepartamento}
+                onChange={(val) => {
+                  setSelectedDepartamento(val);
+                  setFormData((prev: any) => ({ ...prev, municipio_id: "", departamento_id: val }));
+                  setHasChanges(true);
+                }}
+                disabled={!canEdit}
+                onAdd={async (nombre) => {
+                  try {
+                    const nuevo = await crearDepartamento(nombre);
+                    setDepartamentos((prev) => [...prev, nuevo].sort((a, b) => a.nombre.localeCompare(b.nombre)));
+                    setSelectedDepartamento(String(nuevo.id));
+                    setFormData((prev: any) => ({ ...prev, municipio_id: "", departamento_id: String(nuevo.id) }));
+                    setHasChanges(true);
+                  } catch (e: any) {
+                    alert("Error: " + e.message);
+                  }
+                }}
+                placeholder="Buscar o agregar departamento..."
+              />
+            </div>
+            <div className="z-10">
+              <Label>Municipio</Label>
+              <SearchableSelect
+                items={municipios}
+                value={formData.municipio_id || ""}
+                onChange={(val) => {
+                  setFormData((prev: any) => ({ ...prev, municipio_id: val }));
+                  setHasChanges(true);
+                }}
+                disabled={!canEdit || !selectedDepartamento || (municipios.length === 0 && !selectedDepartamento)}
+                onAdd={async (nombre) => {
+                  if (!selectedDepartamento) {
+                    alert("Primero seleccione un departamento");
+                    return;
+                  }
+                  try {
+                    const nuevo = await crearMunicipio(Number(selectedDepartamento), nombre);
+                    setMunicipios((prev) => [...prev, nuevo].sort((a, b) => a.nombre.localeCompare(b.nombre)));
+                    setFormData((prev: any) => ({ ...prev, municipio_id: String(nuevo.id) }));
+                    setHasChanges(true);
+                  } catch (e: any) {
+                    alert("Error: " + e.message);
+                  }
+                }}
+                placeholder="Buscar o agregar municipio..."
+              />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

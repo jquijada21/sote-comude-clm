@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { getManageableRoles } from "./permissions";
+import { getGlobalMunicipioCookie } from "@/components/(base)/layout/actions";
 
 export function useUsers(actorRole?: string) {
   const supabase = createClient();
@@ -18,7 +19,22 @@ export function useUsers(actorRole?: string) {
         .order("nombre", { ascending: true });
 
       if (actorRole === "super") {
-        // todos
+        const globalMun = await getGlobalMunicipioCookie();
+        if (globalMun?.id) {
+          query = query.or(`municipio_id.eq.${globalMun.id},municipio_id.is.null`);
+        } else {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("municipio_id")
+              .eq("id", user.id)
+              .single();
+            if (profile?.municipio_id) {
+              query = query.or(`municipio_id.eq.${profile.municipio_id},municipio_id.is.null`);
+            }
+          }
+        }
       } else if (actorRole === "admin") {
         query = query.neq("rol", "super");
       } else if (actorRole === "admin-observatorio") {

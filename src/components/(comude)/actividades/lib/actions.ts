@@ -9,6 +9,7 @@ import {
   ActComudeConParticipantes,
   ActComudeRegistro,
 } from "./zod";
+import { getGlobalMunicipioCookie } from "@/components/(base)/layout/actions";
 
 // ----- LECTURA -----
 
@@ -52,7 +53,7 @@ export async function getActividades(year?: number, month?: number): Promise<Act
     ? new Date(currentYear, 11, 31, 23, 59, 59, 999).toISOString()
     : new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999).toISOString();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("act_comude")
     .select(`
       *,
@@ -65,6 +66,28 @@ export async function getActividades(year?: number, month?: number): Promise<Act
     .gte("fecha", startDate)
     .lte("fecha", endDate)
     .order("fecha", { ascending: true });
+
+  const globalMun = await getGlobalMunicipioCookie();
+  if (globalMun?.id) {
+    query = query.eq("municipio_id", globalMun.id);
+  } else {
+    // Si no hay cookie global, y el usuario es super, por defecto podria ver todo,
+    // pero idealmente deberíamos restringirlo a su propio municipio por defecto.
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("municipio_id, rol")
+        .eq("id", user.id)
+        .single();
+      
+      if (profile?.rol === "super" && profile.municipio_id) {
+        query = query.eq("municipio_id", profile.municipio_id);
+      }
+    }
+  }
+
+  const { data, error } = await query;
 
   if (error) throw new Error(error.message);
   
@@ -130,6 +153,15 @@ export async function getRegistrosAsistencia(actComude_id: string): Promise<ActC
 export async function crearActividadComude(values: CrearActividadValues): Promise<{ id: string }> {
   const supabase = await createClient();
 
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("No autenticado");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("municipio_id")
+    .eq("id", user.id)
+    .single();
+
   // Insertar la actividad
   const { data: actividad, error: actError } = await supabase
     .from("act_comude")
@@ -137,6 +169,7 @@ export async function crearActividadComude(values: CrearActividadValues): Promis
       nombre: values.nombre,
       fecha: new Date(values.fecha).toISOString(),
       agenda: values.agenda,
+      municipio_id: profile?.municipio_id ?? null,
     })
     .select("id")
     .single();

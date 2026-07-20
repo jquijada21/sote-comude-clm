@@ -34,6 +34,7 @@ const baseFields = z.object({
     .nullable()
     .optional()
     .or(z.literal("")),
+  municipio_id: z.union([z.string(), z.number()]).nullable().optional().or(z.literal("")),
   // --- CAMBIOS AQUÍ ---
   username: z
     .string()

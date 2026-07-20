@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import AnimacionLogoTrifinio from "./AnimacionLogoTrifinio";
+import { useDynamicTitle } from "@/components/(base)/layout/useDynamicTitle";
 import { cn } from "@/lib/utils";
 
 interface LogoTrifinioProps {
@@ -25,6 +26,7 @@ export default function LogoTrifinio({
   const [animationKey, setAnimationKey] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const dynamicTitle = useDynamicTitle();
 
   useEffect(() => {
     setMounted(true);
@@ -115,14 +117,14 @@ export default function LogoTrifinio({
         animate="visible"
       >
         {backgroundEffect === "blur" && (
-          <div className={cn("absolute inset-x-[-25px] lg:inset-x-[-40px] inset-y-[-15px] lg:inset-y-[-25px] rounded-2xl -z-10 shadow-xl", blurBgClass)} />
+          <div className={cn("absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] -z-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)]", blurBgClass)} />
         )}
         
         {backgroundEffect === "glow" && (
           <div className="absolute inset-x-[-20%] inset-y-[-10%] bg-white/50 dark:bg-transparent blur-[60px] -z-10 rounded-[100px]" />
         )}
 
-        <div className="flex flex-row items-center justify-center gap-6 lg:gap-10 w-full px-4 lg:px-8">
+        <div className="flex flex-row items-center justify-between gap-6 lg:gap-8 w-full px-4 lg:px-8">
           <motion.div variants={logoVariants} className="flex-shrink-0">
             <Image
               src="/sote/logo.png"
@@ -144,7 +146,7 @@ export default function LogoTrifinio({
             <motion.h1
               variants={titleVariants}
               className={cn("font-black whitespace-nowrap leading-[0.95]", textClass)}
-              style={{ fontFamily: "'Arial Black', sans-serif", fontSize: "clamp(1.5rem, 3.5vw, 2.8rem)" }}
+              style={{ fontFamily: "'Arial Black', sans-serif", fontSize: "clamp(1.25rem, 2.7vw, 2.4rem)" }}
             >
               Sistema de Organización Territorial Estratégica
             </motion.h1>
@@ -157,9 +159,9 @@ export default function LogoTrifinio({
             <motion.p
               variants={sloganVariants}
               className={cn("font-bold italic mt-2 leading-tight", textClass)}
-              style={{ fontFamily: "Arial, sans-serif", fontSize: "clamp(1rem, 2.2vw, 1.8rem)" }}
+              style={{ fontFamily: "Arial, sans-serif", fontSize: "clamp(0.9rem, 1.6vw, 1.5rem)" }}
             >
-              COMUDE Concepción Las Minas
+              {dynamicTitle}
             </motion.p>
           </motion.div>
         </div>

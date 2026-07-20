@@ -33,6 +33,14 @@ export const authSchema = z.object({
     .uuid("Organización inválida")
     .optional()
     .or(z.literal("").transform(() => undefined)),
+
+  municipio_id: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : undefined))
+    .refine((val) => val === undefined || !isNaN(val), {
+      message: "Municipio inválido",
+    }),
 });
 
 export type AuthInput = z.infer<typeof authSchema>;

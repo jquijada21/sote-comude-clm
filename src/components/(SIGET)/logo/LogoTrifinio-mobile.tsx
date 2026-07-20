@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import AnimacionLogoTrifinio from "./AnimacionLogoTrifinio";
+import { useDynamicTitle } from "@/components/(base)/layout/useDynamicTitle";
 import { cn } from "@/lib/utils";
 
 interface LogoTrifinioMobileProps {
@@ -18,6 +19,7 @@ export default function LogoTrifinioMobile({
 }: LogoTrifinioMobileProps) {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const dynamicTitle = useDynamicTitle();
 
   useEffect(() => {
     setMounted(true);
@@ -135,7 +137,7 @@ export default function LogoTrifinioMobile({
               className={cn("font-bold italic mt-2 leading-tight", textClass)}
               style={{ fontFamily: "Arial, sans-serif", fontSize: "clamp(0.6rem, 2.5vw, 2.2rem)" }}
             >
-              COMUDE Concepción Las Minas
+              {dynamicTitle}
             </motion.p>
           </motion.div>
         </div>

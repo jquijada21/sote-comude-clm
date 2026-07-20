@@ -11,6 +11,44 @@ export async function getOrganizaciones() {
   return [];
 }
 
+export async function getDepartamentos() {
+  const supabase = await createClient();
+  const { data } = await supabase.from("lug_departamentos").select("id, nombre").order("nombre");
+  return data || [];
+}
+
+export async function getMunicipios(departamentoId: number) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("lug_municipios")
+    .select("id, nombre")
+    .eq("departamento_id", departamentoId)
+    .order("nombre");
+  return data || [];
+}
+
+export async function crearDepartamento(nombre: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("lug_departamentos")
+    .insert({ nombre })
+    .select("id, nombre")
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function crearMunicipio(departamentoId: number, nombre: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("lug_municipios")
+    .insert({ departamento_id: departamentoId, nombre })
+    .select("id, nombre")
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
 function getAdminClient() {
   return createSupabaseAdmin(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -42,6 +80,7 @@ export async function signup(
     password: formData.get("password"),
     rol: formData.get("rol"),
     organizacion_id: formData.get("organizacion_id") || undefined,
+    municipio_id: formData.get("municipio_id") || undefined,
   };
 
   const validated = authSchema.safeParse(rawData);
@@ -52,7 +91,7 @@ export async function signup(
     };
   }
 
-  const { name, username, password, rol, organizacion_id } = validated.data;
+  const { name, username, password, rol, organizacion_id, municipio_id } = validated.data;
 
   const supabase = await createClient();
   const {
@@ -66,6 +105,19 @@ export async function signup(
         rol: ["No tienes permisos para asignar este rol."],
       },
     };
+  }
+
+  const { data: actorProfile } = await supabase
+    .from("profiles")
+    .select("municipio_id, rol")
+    .eq("id", actor?.id)
+    .single();
+
+  let finalMunicipioId = null;
+  if (actorProfile?.rol === "super") {
+    finalMunicipioId = municipio_id ?? null;
+  } else {
+    finalMunicipioId = actorProfile?.municipio_id ?? null;
   }
 
   const fakeEmail = `${username}@app.com`;
@@ -82,6 +134,7 @@ export async function signup(
       username,
       rol,
       organizacion_id: organizacion_id ?? null,
+      municipio_id: finalMunicipioId,
     },
   });
 
@@ -106,6 +159,7 @@ export async function signup(
           nombre: name,
           rol: rol,
           organizacion_id: organizacion_id ?? null,
+          municipio_id: finalMunicipioId,
         },
         { onConflict: "id" },
       );

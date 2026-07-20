@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useUser } from "@/components/(base)/providers/UserProvider";
+import { useUser, useUserContext } from "@/components/(base)/providers/UserProvider";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import { Menu as MenuIcon, X, RefreshCw, LogIn } from "lucide-react";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
@@ -13,13 +13,17 @@ import { getPendingDevicesCount } from "@/components/(SIGET)/admin/lib/actions";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import AnimacionLogoTrifinio from "@/components/(SIGET)/logo/AnimacionLogoTrifinio";
+import { GlobalMunicipioSelector } from "./GlobalMunicipioSelector";
+import { useDynamicTitle } from "./useDynamicTitle";
 
 export default function Header() {
   const user = useUser();
-  const [isOpen, setIsOpen] = useState(false);
+  const { effectiveRole } = useUserContext();
   const [pendingDevices, setPendingDevices] = useState(0);
+  const [isOpen, setIsOpen] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const dynamicTitle = useDynamicTitle();
   const pathname = usePathname();
   const isPublicHome = pathname === "/";
   const isLoginPage = pathname === "/login";
@@ -105,7 +109,7 @@ export default function Header() {
                           className="text-xs md:text-base lg:text-lg font-semibold text-celeste-trifinio tracking-normal"
                           style={{ fontFamily: "Arial, sans-serif" }}
                         >
-                          COMUDE Concepción Las Minas
+                          {dynamicTitle}
                         </span>
                       </span>
                     </motion.div>
@@ -121,6 +125,9 @@ export default function Header() {
           </div>
 
           <div className="flex items-center gap-5 md:gap-4 shrink-0">
+            <div className="hidden lg:flex items-center">
+              <GlobalMunicipioSelector />
+            </div>
             <AnimatedThemeToggler />
             <button
               id="refresh-btn"

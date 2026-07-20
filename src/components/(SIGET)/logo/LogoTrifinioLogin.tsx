@@ -3,18 +3,23 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useDynamicTitle } from "@/components/(base)/layout/useDynamicTitle";
+import { cn } from "@/lib/utils";
 import AnimacionLogoTrifinio from "./AnimacionLogoTrifinio";
 import { createPortal } from "react-dom";
 
 interface LogoTrifinioLoginProps {
   backgroundEffect?: "blur" | "glow" | "none";
+  textClass?: string;
 }
 
 export default function LogoTrifinioLogin({
   backgroundEffect = "none",
+  textClass = "text-azul-trifinio dark:text-white",
 }: LogoTrifinioLoginProps) {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const dynamicTitle = useDynamicTitle();
 
   useEffect(() => {
     setMounted(true);
@@ -62,14 +67,6 @@ export default function LogoTrifinioLogin({
     visible: {
       scaleX: 1,
       transition: { duration: 1.2, ease: "easeInOut" as const },
-    },
-  };
-
-  const countriesVariants = {
-    hidden: { opacity: 0, y: 5 },
-    visible: {
-      opacity: 1, y: 0,
-      transition: { duration: 0.3, ease: "easeOut" as const },
     },
   };
 
@@ -123,10 +120,10 @@ export default function LogoTrifinioLogin({
 
             <motion.p
               variants={sloganVariants}
-              className="font-bold italic mt-2 text-azul-trifinio dark:text-white leading-tight text-[0.75rem] md:text-[1.1rem]"
-              style={{ fontFamily: "Arial, sans-serif" }}
+              className={cn("font-bold italic mt-2 leading-tight", textClass)}
+              style={{ fontFamily: "Arial, sans-serif", fontSize: "clamp(0.85rem, 1.8vw, 1.6rem)" }}
             >
-              COMUDE Concepción Las Minas
+              {dynamicTitle}
             </motion.p>
           </motion.div>
         </div>

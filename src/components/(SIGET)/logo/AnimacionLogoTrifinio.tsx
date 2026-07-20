@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useDynamicTitle } from "@/components/(base)/layout/useDynamicTitle";
 
 interface AnimacionLogoTrifinioProps {
   isOpen: boolean;
@@ -9,6 +10,8 @@ interface AnimacionLogoTrifinioProps {
 }
 
 export default function AnimacionLogoTrifinio({ isOpen, onClose }: AnimacionLogoTrifinioProps) {
+  const dynamicTitle = useDynamicTitle();
+
   return (
     <AnimatePresence mode="wait">
       {isOpen && (
@@ -21,8 +24,6 @@ export default function AnimacionLogoTrifinio({ isOpen, onClose }: AnimacionLogo
           className="fixed inset-0 z-[1000000] flex items-center justify-center bg-white/70 dark:bg-background/80 backdrop-blur-[20px] cursor-pointer p-4 lg:p-12 overflow-hidden"
           style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh' }}
         >
-
-
           <motion.div
             initial={{ scale: 1.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -39,7 +40,7 @@ export default function AnimacionLogoTrifinio({ isOpen, onClose }: AnimacionLogo
               >
                 <Image
                   src="/sote/logo.png"
-                  alt="COMUDE Concepción Las Minas"
+                  alt="SOTE"
                   width={250}
                   height={250}
                   className="w-[120px] lg:w-[250px] h-auto object-contain"
@@ -75,10 +76,10 @@ export default function AnimacionLogoTrifinio({ isOpen, onClose }: AnimacionLogo
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ type: "spring", stiffness: 50, damping: 16, duration: 1.1 }}
-                    className="font-bold italic mt-2 text-azul-trifinio dark:text-white leading-tight"
-                    style={{ fontFamily: "Arial, sans-serif", fontSize: "clamp(1rem, 3vw, 2.5rem)" }}
+                    className="text-[#053154] dark:text-blue-100 font-bold italic mt-1 sm:mt-2 xl:mt-3 px-4 drop-shadow-md z-10 relative"
+                    style={{ fontFamily: "Arial, sans-serif", fontSize: "clamp(0.6rem, 2vw, 2.5rem)" }}
                   >
-                    COMUDE Concepción Las Minas
+                    {dynamicTitle}
                   </motion.p>
                 </div>
               </motion.div>

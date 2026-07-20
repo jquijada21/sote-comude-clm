@@ -30,12 +30,12 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "SOTE - COMUDE Concepción Las Minas",
-  description: "Sistema de Organización Territorial Estratégica",
+  title: "SOTE - Sistema de Organización Territorial Estratégica",
+  description: "Plataforma Integral para la Gestión del SOTE y los COMUDE",
+  applicationName: "SOTE-COMUDE",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
-    title: "SOTE - COMUDE Concepción Las Minas",
+    title: "SOTE - Sistema de Organización Territorial Estratégica",
   },
   icons: {
     icon: "/apple-touch-icon.png",

@@ -37,7 +37,7 @@ const DASHBOARD_ICON_PLATE_CLASS =
 const DASHBOARD_DOTTED_BG_CLASS =
   "pointer-events-none bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:24px_24px] dark:bg-[radial-gradient(oklch(50%_0_0)_1px,transparent_1px)] opacity-60";
 
-export function Dashboard() {
+export function Dashboard({ initialPortada = "/sote/hero-background2.jpg" }: { initialPortada?: string }) {
   const { user, effectiveRole } = useUserContext();
   const { data: appSettings } = useAppSettings();
   const passkeysEnabled = appSettings?.enable_passkeys ?? false;
@@ -47,6 +47,8 @@ export function Dashboard() {
   const [isPasskeysOpen, setIsPasskeysOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
+
+  const displayImage = initialPortada;
 
   const { scrollY } = useScroll();
   const logoY = useTransform(scrollY, [0, 600], [0, -300]);
@@ -85,10 +87,12 @@ export function Dashboard() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="relative flex flex-col items-center justify-center px-4 py-6 sm:p-10 lg:p-14 bg-white/80 dark:bg-black/40 backdrop-blur-2xl rounded-[2rem] sm:rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] text-center w-full sm:w-[90%] max-w-none mx-auto transition-all group overflow-hidden"
+      className="relative flex flex-col items-center justify-center px-4 py-6 sm:p-10 lg:p-14 bg-white/80 dark:bg-black/40 backdrop-blur-2xl rounded-[2rem] sm:rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] text-center w-full sm:w-[90%] max-w-none mx-auto transition-all group"
     >
       {/* Decorative gradient orb */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-gradient-to-b from-celeste-trifinio/20 to-transparent blur-3xl -z-10" />
+      <div className="absolute inset-0 overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] pointer-events-none -z-10">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-gradient-to-b from-celeste-trifinio/20 to-transparent blur-3xl" />
+      </div>
 
 
       <h2 className="text-[22px] sm:text-3xl lg:text-5xl font-black text-azul-trifinio dark:text-white mb-4 sm:mb-6 tracking-tight">
@@ -123,7 +127,7 @@ export function Dashboard() {
 
         <div className="w-full overflow-hidden">
           <motion.img
-            src="/sote/hero-background2.jpg"
+            src={displayImage}
             alt="COMUDE Concepción Las Minas"
             style={{
               y: useTransform(scrollY, [0, 800], [0, 150]),
@@ -146,7 +150,7 @@ export function Dashboard() {
           <motion.div
             className="absolute inset-0 bg-cover bg-center origin-center"
             style={{
-              backgroundImage: "url('/sote/hero-background2.jpg')",
+              backgroundImage: `url('${displayImage}')`,
               scale: bgScale,
             }}
           />
@@ -156,8 +160,10 @@ export function Dashboard() {
           className="fixed top-0 left-0 w-full h-[65vh] flex justify-center items-center z-[5] pt-16 pb-[140px]"
           style={{ y: logoY, opacity: logoOpacity }}
         >
-          <div className="relative flex justify-center items-center px-8">
-            <LogoTrifinio />
+          <div className="relative flex justify-center items-center w-full px-8 lg:px-12">
+            <div className="w-full sm:w-[90%] max-w-[min(100%,1600px)] mx-auto">
+              <LogoTrifinio />
+            </div>
           </div>
         </motion.div>
 
