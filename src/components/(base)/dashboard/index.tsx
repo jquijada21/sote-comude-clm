@@ -11,8 +11,8 @@ import {
 import { useRouter } from "next/navigation";
 import AnimatedIcon from "@/components/ui/AnimatedIcon";
 import { useUserContext } from "@/components/(base)/providers/UserProvider";
-import LogoTrifinio from "@/components/(SIGET)/logo/LogoTrifinio";
-import LogoTrifinioMobile from "@/components/(SIGET)/logo/LogoTrifinio-mobile";
+import LogoTrifinio from "@/components/(comude)/logo/LogoTrifinio";
+import LogoTrifinioMobile from "@/components/(comude)/logo/LogoTrifinio-mobile";
 import VerPerfil from "@/components/(base)/(users)/profile/VerPerfil";
 import PassKeysModal from "@/components/(base)/layout/modals/PassKeysModal";
 import { useAppSettings } from "@/components/(base)/(settings)/hooks";

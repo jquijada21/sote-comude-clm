@@ -1,4 +1,4 @@
-export default function SIGETPage() {
+export default function COMUDEPage() {
   return (
     <div className="flex-1 p-8 text-center text-muted-foreground flex flex-col items-center justify-center">
       <h1 className="text-2xl font-bold mb-2">Panel de Control SOTE</h1>

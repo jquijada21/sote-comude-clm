@@ -177,6 +177,6 @@ export async function toggleUserStatus(userId: string, isBanned: boolean) {
     throw new Error(error.message);
   }
 
-  revalidatePath("/siget/admin/usuarios");
+  revalidatePath("/comude/admin/usuarios");
   return { success: true };
 }

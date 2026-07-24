@@ -8,7 +8,7 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
 
-  if (!user && pathname.startsWith("/siget")) {
+  if (!user && pathname.startsWith("/comude")) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
@@ -56,15 +56,15 @@ if (user) {
     }
 
     if (needsPasswordChange) {
-      if (pathname !== "/siget/cambiar-password" && !pathname.startsWith("/api/auth")) {
+      if (pathname !== "/comude/cambiar-password" && !pathname.startsWith("/api/auth")) {
         const url = request.nextUrl.clone();
-        url.pathname = "/siget/cambiar-password";
+        url.pathname = "/comude/cambiar-password";
         return NextResponse.redirect(url);
       }
     } else {
-      if (pathname === "/siget/cambiar-password" || pathname === "/login") {
+      if (pathname === "/comude/cambiar-password" || pathname === "/login") {
         const url = request.nextUrl.clone();
-        url.pathname = "/siget";
+        url.pathname = "/comude";
         return NextResponse.redirect(url);
       }
     }
@@ -72,13 +72,13 @@ if (user) {
     if (pathname === "/esperando-acceso") {
       if (!requireAuth) {
         const url = request.nextUrl.clone();
-        url.pathname = "/siget ";
+        url.pathname = "/comude ";
         return NextResponse.redirect(url);
       }
 
       if (isSuperOrAdmin) {
         const url = request.nextUrl.clone();
-        url.pathname = "/siget";
+        url.pathname = "/comude";
         return NextResponse.redirect(url);
       }
 
@@ -93,14 +93,14 @@ if (user) {
 
       if (device && device.is_authorized) {
         const url = request.nextUrl.clone();
-        url.pathname = "/siget";
+        url.pathname = "/comude";
         return NextResponse.redirect(url);
       }
     }
 
-    if (pathname.startsWith("/siget")) {
+    if (pathname.startsWith("/comude")) {
 
-      if (pathname.startsWith("/siget/admin")) {
+      if (pathname.startsWith("/comude/admin")) {
         if (!canAccessAdminPanel) {
           const url = request.nextUrl.clone();
           url.pathname = "/sin-acceso";
@@ -109,8 +109,8 @@ if (user) {
 
         if (
           !hasFullAdminAccess &&
-          pathname !== "/siget/admin" &&
-          !pathname.startsWith("/siget/admin/usuarios")
+          pathname !== "/comude/admin" &&
+          !pathname.startsWith("/comude/admin/usuarios")
         ) {
           const url = request.nextUrl.clone();
           url.pathname = "/sin-acceso";
@@ -126,13 +126,13 @@ if (user) {
         isSuperOrAdmin ||
         realRole === "admin-observatorio";
 
-      if (pathname.startsWith("/siget/observatorio/plantillas")) {
+      if (pathname.startsWith("/comude/observatorio/plantillas")) {
         if (!canAccessPlantillas) {
           const url = request.nextUrl.clone();
           url.pathname = "/sin-acceso";
           return NextResponse.redirect(url);
         }
-      } else if (pathname.startsWith("/siget/observatorio")) {
+      } else if (pathname.startsWith("/comude/observatorio")) {
         if (!canAccessObservatorio) {
           const url = request.nextUrl.clone();
           url.pathname = "/sin-acceso";

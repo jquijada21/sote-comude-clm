@@ -19,7 +19,7 @@ export default function NotFound() {
           <strong>SOTE</strong>
         </p>
         <Link
-          href="/siget"
+          href="/comude"
           className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground py-3 rounded-xl font-bold text-xs transition-all active:scale-95 uppercase"
         >
           <ArrowLeft className="size-4 stroke-3" />

@@ -14,6 +14,7 @@ import {
   KeyRound,
   LogIn,
   LogOut,
+  Network,
   Settings,
   ShieldAlert,
   Smartphone,
@@ -38,6 +39,7 @@ import { useAppSettings } from "@/components/(base)/(settings)/hooks";
 import VerPerfil from "@/components/(base)/(users)/profile/VerPerfil";
 import PassKeysModal from "@/components/(base)/layout/modals/PassKeysModal";
 import ManualUsuarioModal from "@/components/(base)/layout/modals/ManualUsuarioModal";
+import { GlobalMunicipioSelector } from "./GlobalMunicipioSelector";
 
 const MENU_OPTION_ICONS: Record<string, LucideIcon> = {
   "movilidad-humana": Globe,
@@ -53,6 +55,7 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
   perfil: User,
   admin: Settings,
   "memoria-labores": FileText,
+  estructuras: Network,
 };
 
 type MenuAccordionOption = {
@@ -354,13 +357,13 @@ function MenuHomeLink({
   pathname: string;
   onNavigate: () => void;
 }) {
-  const isActive = pathname === "/siget";
+  const isActive = pathname === "/comude";
 
   return (
     <MenuItemShell variant="modules" active={isActive}>
       <Link
         id="menu-inicio"
-        href="/siget"
+        href="/comude"
         onClick={onNavigate}
         className="relative flex items-center gap-3 px-3.5 py-3 cursor-pointer"
       >
@@ -475,8 +478,8 @@ export default function Menu({ isOpen, setIsOpen, user }: MenuProps) {
   const adminModule = visibleModules.find((mod) => mod.id === "admin");
   const observatorioModule = visibleModules.find((mod) => mod.id === "observatorio");
   const perfilModule = visibleModules.find((mod) => mod.id === "perfil");
-  const isAdminRoute = pathname.startsWith("/siget/admin");
-  const isObservatorioRoute = pathname.startsWith("/siget/observatorio");
+  const isAdminRoute = pathname.startsWith("/comude/admin");
+  const isObservatorioRoute = pathname.startsWith("/comude/observatorio");
   const passkeysEnabled = appSettings?.enable_passkeys ?? false;
   const perfilMenuOptions = getPerfilMenuOptions(passkeysEnabled);
   const manualUsuarioPath = appSettings?.manual_usuario_url ?? null;
@@ -592,6 +595,12 @@ export default function Menu({ isOpen, setIsOpen, user }: MenuProps) {
                   </div>
                 </div>
               </div>
+
+              {(pathname === "/" || pathname === "/comude") && (
+                <div className="lg:hidden mt-3 p-3 bg-white/90 dark:bg-zinc-900/90 rounded-2xl ring-1 ring-white/60 dark:ring-zinc-700/60 flex justify-center">
+                  <GlobalMunicipioSelector />
+                </div>
+              )}
 
               <button
                 type="button"

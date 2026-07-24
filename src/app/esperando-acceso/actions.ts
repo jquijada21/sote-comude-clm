@@ -14,7 +14,7 @@ async function notifySpecialRoles(userName: string, isResend: boolean) {
   await sendPushToRoles(roles, {
     title,
     body,
-    url: "/siget/admin/dispositivos" // Assuming this is where admins manage devices
+    url: "/comude/admin/dispositivos" // Assuming this is where admins manage devices
   });
 }
 

@@ -14,7 +14,7 @@ import { DotPattern } from "@/components/ui/dot-pattern";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTheme } from "next-themes";
 import Swal from "sweetalert2";
-import LogoTrifinioLogin from "@/components/(SIGET)/logo/LogoTrifinioLogin";
+import LogoTrifinioLogin from "@/components/(comude)/logo/LogoTrifinioLogin";
 
 export default function LogIn() {
   const [mounted, setMounted] = useState(false);
@@ -71,7 +71,7 @@ export default function LogIn() {
   }, []);
   useEffect(() => {
     if (state?.success) {
-      window.location.href = "/siget";
+      window.location.href = "/comude";
     } else if (state?.message === "DEVICE_LIMIT") {
       window.location.href = "/esperando-acceso?reason=limit";
     } else if (state?.message === "DEVICE_PENDING") {
@@ -90,7 +90,7 @@ export default function LogIn() {
 
       if (verification.success) {
         localStorage.setItem("cermad-device-passkey-enabled", "true");
-        window.location.href = "/siget";
+        window.location.href = "/comude";
       } else if (verification.error === "DEVICE_LIMIT") {
         window.location.href = "/esperando-acceso?reason=limit";
       } else if (verification.error === "DEVICE_PENDING") {

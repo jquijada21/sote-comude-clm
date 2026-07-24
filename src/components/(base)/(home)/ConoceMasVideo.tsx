@@ -4,8 +4,8 @@ import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, X, Globe } from "lucide-react";
 import Link from "next/link";
-import LogoTrifinio from "@/components/(SIGET)/logo/LogoTrifinio";
-import LogoTrifinioMobile from "@/components/(SIGET)/logo/LogoTrifinio-mobile";
+import LogoTrifinio from "@/components/(comude)/logo/LogoTrifinio";
+import LogoTrifinioMobile from "@/components/(comude)/logo/LogoTrifinio-mobile";
 import { cn } from "@/lib/utils";
 
 const YOUTUBE_VIDEO_ID = "TA0GAUs8vXc";

@@ -9,7 +9,7 @@ export default function ConditionalFooter() {
   const pathname = usePathname();
   if (pathname === "/") return null;
 
-  const isDashboard = pathname === "/siget";
+  const isDashboard = pathname === "/comude";
 
   return (
     <footer

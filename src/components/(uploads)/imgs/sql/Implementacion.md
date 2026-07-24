@@ -1,6 +1,6 @@
 # Implementación: logos de organizaciones (`components/(uploads)/imgs`)
 
-Documentación de cómo está construido el sistema de subida de logos en SIGET y cómo debe quedar configurado Supabase Storage.
+Documentación de cómo está construido el sistema de subida de logos en COMUDE y cómo debe quedar configurado Supabase Storage.
 
 ---
 
@@ -35,7 +35,7 @@ src/components/(uploads)/imgs/
     └── Implementacion.md     # Este archivo
 ```
 
-### Integración en SIGET
+### Integración en COMUDE
 
 | Dónde | Componente |
 |-------|------------|

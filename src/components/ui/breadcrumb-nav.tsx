@@ -38,7 +38,7 @@ export function BreadcrumbNav() {
         >
           <motion.div layout="position">
             <Link
-              href="/siget"
+              href="/comude"
               className={cn(crumbPanelLink, "gap-2")}
               title="Ir al panel"
             >
@@ -53,7 +53,7 @@ export function BreadcrumbNav() {
     );
   }
 
-  if (pathname === "/siget") {
+  if (pathname === "/comude") {
     return (
       <LayoutGroup id="breadcrumb">
         <motion.div
@@ -80,7 +80,7 @@ export function BreadcrumbNav() {
   const segments = rawSegments.filter(seg => !isUUID.test(seg));
 
   const parentPath =
-    segments.length > 1 ? `/${segments.slice(0, -1).join("/")}` : "/siget";
+    segments.length > 1 ? `/${segments.slice(0, -1).join("/")}` : "/comude";
 
   return (
     <LayoutGroup id="breadcrumb">
@@ -100,7 +100,7 @@ export function BreadcrumbNav() {
 
         <motion.div layout="position" className="flex items-center">
           <Link
-            href="/siget"
+            href="/comude"
             className={crumbPanelLink}
             title="Ir al panel"
           >
@@ -111,7 +111,7 @@ export function BreadcrumbNav() {
         <div className="flex items-center gap-1 overflow-hidden mask-gradient">
           <AnimatePresence mode="popLayout" initial={false}>
             {segments.map((segment, index) => {
-              if (segment === "siget") return null;
+              if (segment === "comude") return null;
 
               const href = `/${segments.slice(0, index + 1).join("/")}`;
               const isLast = index === segments.length - 1;

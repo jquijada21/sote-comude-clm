@@ -89,7 +89,7 @@ export default function MunicipioSettingsSection() {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Clock className="size-5 text-azul-trifinio dark:text-celeste-trifinio" />
-            <h3 className="text-xl font-bold text-foreground">Reglas de Asistencia (Municipio)</h3>
+            <h3 className="text-xl font-bold text-foreground">Reglas de Asistencia</h3>
           </div>
           <p className="text-sm text-muted-foreground">
             Define el tiempo mínimo y máximo permitido para que los usuarios puedan marcar su entrada o salida respecto a la hora programada.
@@ -148,62 +148,62 @@ export default function MunicipioSettingsSection() {
 
       <div className="flex flex-col divide-y divide-border/25 overflow-hidden rounded-2xl border border-border/80 bg-card">
         {/* Header */}
-      <div className="flex items-center gap-4 p-4 md:p-5">
-        <div className="rounded-lg bg-indigo-500/10 p-2.5">
-          <ImageIcon className="size-5 text-indigo-600 dark:text-indigo-400" />
-        </div>
-        <div className="min-w-0 space-y-0.5">
-          <h3 className="text-base font-semibold text-foreground">
-            Imagen de portada del municipio
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            Esta imagen aparece como fondo en el inicio para todos los usuarios de este municipio.
-            Máximo 1 MB · JPEG, PNG o WebP · Proporción recomendada 16:9
-          </p>
-        </div>
-      </div>
-
-      {/* Uploader */}
-      <div className="p-4 md:p-5">
-        {isLoading || !municipioId ? (
-          <div className="flex h-32 items-center justify-center">
-            <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        <div className="flex items-center gap-4 p-4 md:p-5">
+          <div className="rounded-lg bg-indigo-500/10 p-2.5">
+            <ImageIcon className="size-5 text-indigo-600 dark:text-indigo-400" />
           </div>
-        ) : (
-          <ImageUploader
-            bucketName={BUCKET}
-            currentImagePath={currentPath}
-            onUploadSuccess={handleUploadSuccess}
-            onDeleteSuccess={handleDeleteSuccess}
-            disabled={isPending}
-            aspect={16 / 9}
-            aspectLabel="Horizontal 16:9"
-            maxSizeMB={0.9}
-            maxDimension={1920}
-            folderPath={folderPath}
-          />
-        )}
-      </div>
+          <div className="min-w-0 space-y-0.5">
+            <h3 className="text-base font-semibold text-foreground">
+              Imagen de portada
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Esta imagen aparece como fondo en el inicio para todos los usuarios de este municipio.
+              Máximo 1 MB · JPEG, PNG o WebP · Proporción recomendada 16:9
+            </p>
+          </div>
+        </div>
 
-      {/* Preview */}
-      {previewUrl && (
-        <div className="px-4 pb-4 md:px-5 md:pb-5">
-          <div className="relative overflow-hidden rounded-xl border border-border/60 shadow-sm">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={previewUrl}
-              alt="Vista previa de portada"
-              className="w-full max-h-48 object-cover"
+        {/* Uploader */}
+        <div className="p-4 md:p-5">
+          {isLoading || !municipioId ? (
+            <div className="flex h-32 items-center justify-center">
+              <Loader2 className="size-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <ImageUploader
+              bucketName={BUCKET}
+              currentImagePath={currentPath}
+              onUploadSuccess={handleUploadSuccess}
+              onDeleteSuccess={handleDeleteSuccess}
+              disabled={isPending}
+              aspect={16 / 9}
+              aspectLabel="Horizontal 16:9"
+              maxSizeMB={0.9}
+              maxDimension={1920}
+              folderPath={folderPath}
             />
-            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent px-3 py-2">
-              <span className="text-xs text-white/80 font-medium">
-                Vista previa de portada actual
-              </span>
+          )}
+        </div>
+
+        {/* Preview */}
+        {previewUrl && (
+          <div className="px-4 pb-4 md:px-5 md:pb-5">
+            <div className="relative overflow-hidden rounded-xl border border-border/60 shadow-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={previewUrl}
+                alt="Vista previa de portada"
+                className="w-full max-h-48 object-cover"
+              />
+              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent px-3 py-2">
+                <span className="text-xs text-white/80 font-medium">
+                  Vista previa de portada actual
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
-  </div>
   );
 }

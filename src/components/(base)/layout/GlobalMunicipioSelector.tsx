@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useUserContext } from "@/components/(base)/providers/UserProvider";
 import { getDepartamentos, getMunicipios } from "@/components/(base)/(auth)/signup/actions";
 import { setGlobalMunicipioCookie, getInitialGlobalMunicipioState } from "./actions";
@@ -10,40 +11,46 @@ import { cn } from "@/lib/utils";
 export function GlobalMunicipioSelector() {
   const { effectiveRole } = useUserContext();
   const router = useRouter();
-  const [departamentos, setDepartamentos] = useState<{ id: number; nombre: string }[]>([]);
-  const [municipios, setMunicipios] = useState<{ id: number; nombre: string }[]>([]);
   const [selectedDept, setSelectedDept] = useState<string>("");
   const [selectedMun, setSelectedMun] = useState<string>("");
 
-  useEffect(() => {
-    if (effectiveRole !== "super") return;
+  const { data: initialState } = useQuery({
+    queryKey: ["global-municipio-state"],
+    queryFn: () => getInitialGlobalMunicipioState(),
+    enabled: effectiveRole === "super",
+    staleTime: 1000 * 60 * 5,
+  });
 
-    // Load initial state
-    getInitialGlobalMunicipioState().then((state) => {
-      if (state.departamentoId) {
-        setSelectedDept(String(state.departamentoId));
-      }
-      if (state.municipioId) {
-        setSelectedMun(String(state.municipioId));
-      }
-    });
-
-    getDepartamentos().then(setDepartamentos).catch(() => {});
-  }, [effectiveRole]);
+  const { data: deptosData } = useQuery({
+    queryKey: ["departamentos"],
+    queryFn: () => getDepartamentos(),
+    enabled: effectiveRole === "super",
+    staleTime: Infinity,
+  });
 
   useEffect(() => {
-    if (selectedDept) {
-      getMunicipios(Number(selectedDept)).then(setMunicipios).catch(() => {});
-    } else {
-      setMunicipios([]);
+    if (initialState) {
+      if (initialState.departamentoId && !selectedDept) setSelectedDept(String(initialState.departamentoId));
+      if (initialState.municipioId && !selectedMun) setSelectedMun(String(initialState.municipioId));
     }
-  }, [selectedDept]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialState]);
+
+  const { data: munsData } = useQuery({
+    queryKey: ["municipios", selectedDept],
+    queryFn: () => getMunicipios(Number(selectedDept)),
+    enabled: !!selectedDept && effectiveRole === "super",
+    staleTime: Infinity,
+  });
+
+  const departamentos = deptosData || [];
+  const municipios = munsData || [];
 
   if (effectiveRole !== "super") return null;
 
   return (
-    <div className="flex items-center gap-2 max-w-[300px]">
-      <div className="w-32 hidden lg:block relative">
+    <div className="flex items-center gap-2 w-full max-w-[350px]">
+      <div className="w-1/2 relative">
         <select
           value={selectedDept}
           onChange={(e) => {
@@ -67,7 +74,7 @@ export function GlobalMunicipioSelector() {
           </svg>
         </div>
       </div>
-      <div className="w-40 lg:w-48 relative">
+      <div className="w-1/2 relative">
         <select
           value={selectedMun}
           disabled={!selectedDept && municipios.length === 0}

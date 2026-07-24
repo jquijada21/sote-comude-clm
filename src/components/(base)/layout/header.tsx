@@ -9,10 +9,10 @@ import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
 import { Menu as MenuIcon, X, RefreshCw, LogIn } from "lucide-react";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import Menu from "./Menu";
-import { getPendingDevicesCount } from "@/components/(SIGET)/admin/lib/actions";
+import { getPendingDevicesCount } from "@/components/(comude)/admin/lib/actions";
 import Image from "next/image";
 import { createPortal } from "react-dom";
-import AnimacionLogoTrifinio from "@/components/(SIGET)/logo/AnimacionLogoTrifinio";
+import AnimacionLogoTrifinio from "@/components/(comude)/logo/AnimacionLogoTrifinio";
 import { GlobalMunicipioSelector } from "./GlobalMunicipioSelector";
 import { useDynamicTitle } from "./useDynamicTitle";
 
@@ -26,6 +26,7 @@ export default function Header() {
   const dynamicTitle = useDynamicTitle();
   const pathname = usePathname();
   const isPublicHome = pathname === "/";
+  const isPrincipal = pathname === "/comude" || pathname === "/";
   const isLoginPage = pathname === "/login";
   const showLoginButton = isPublicHome && !user;
   const showBreadcrumb = Boolean(user) && !isLoginPage;
@@ -69,7 +70,7 @@ export default function Header() {
           <div className="flex items-center h-full">
             <div className="flex items-center shrink-0">
               <Link
-                href={user ? "/siget" : "/"}
+                href={user ? "/comude" : "/"}
                 onClick={handleLogoClick}
                 id="observatorio-header-brand"
                 className="flex flex-row items-center shrink-0 group gap-2 md:gap-3 cursor-pointer"
@@ -126,7 +127,7 @@ export default function Header() {
 
           <div className="flex items-center gap-5 md:gap-4 shrink-0">
             <div className="hidden lg:flex items-center">
-              <GlobalMunicipioSelector />
+              {isPrincipal && <GlobalMunicipioSelector />}
             </div>
             <AnimatedThemeToggler />
             <button
@@ -192,9 +193,16 @@ export default function Header() {
       {showBreadcrumb && (
         <div 
           style={{ top: 'calc(var(--banner-height, 0px) + 3.5rem + env(safe-area-inset-top))' }}
-          className="fixed left-0 md:hidden w-full px-6 h-[var(--mobile-breadcrumb-height)] flex items-center bg-card z-[105]"
+          className="fixed left-0 md:hidden w-full pl-4 pr-3 py-1 min-h-[var(--mobile-breadcrumb-height)] flex items-center justify-between gap-3 bg-card border-b border-border/30 shadow-sm z-[105]"
         >
-          <BreadcrumbNav />
+          <div className="shrink-0">
+            <BreadcrumbNav />
+          </div>
+          {isPrincipal && (
+            <div className="flex-1 flex justify-end min-w-0">
+              <GlobalMunicipioSelector />
+            </div>
+          )}
         </div>
       )}
 

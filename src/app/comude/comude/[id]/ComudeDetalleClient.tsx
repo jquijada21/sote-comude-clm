@@ -21,7 +21,7 @@ export default function ComudeDetalleClient({ id }: { id: string }) {
   const puedeGestionar = isSuperOrAdminRole(effectiveRole);
 
   const handleClose = () => {
-    router.push("/siget");
+    router.push("/comude");
   };
 
   if (!mounted) return null;

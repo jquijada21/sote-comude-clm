@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/utils/supabase/client";
+import { getGlobalMunicipioCookie } from "@/components/(base)/layout/actions";
 import {
   ActComude,
   ActComudeConParticipantes,
@@ -155,5 +156,71 @@ export function useActualizarImagenesActividad() {
       queryClient.invalidateQueries({ queryKey: ["actividad-comude", variables.id] });
       queryClient.invalidateQueries({ queryKey: ["actividades-comude"] });
     },
+  });
+}
+
+// ----- DIRECTORIO DE CONTACTOS -----
+
+export type ContactoPerfil = {
+  id: string;
+  nombre: string;
+  telefono: string | null;
+  avatar_url: string | null;
+  rol: string | null;
+};
+
+export function useContactos(isSuperViewer: boolean, options?: { enabled?: boolean }) {
+  const supabase = createClient();
+  return useQuery<ContactoPerfil[], Error>({
+    queryKey: ["contactos-directorio", isSuperViewer],
+    enabled: options?.enabled ?? true,
+    queryFn: async () => {
+      let query = supabase
+        .from("profiles")
+        .select("id, nombre, telefono, avatar_url, rol")
+        .eq("activo", true)
+        .order("nombre", { ascending: true });
+
+      // ── Filtro por municipio ────────────────────────────────────────────
+      if (isSuperViewer) {
+        // Super: usa el municipio activo de la cookie global (cambia al moverse)
+        const globalMun = await getGlobalMunicipioCookie();
+        if (globalMun?.id) {
+          query = query.eq("municipio_id", globalMun.id);
+        } else {
+          // Fallback: su propio municipio_id del perfil
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("municipio_id")
+              .eq("id", user.id)
+              .single();
+            if (profile?.municipio_id) {
+              query = query.eq("municipio_id", profile.municipio_id);
+            }
+          }
+        }
+      } else {
+        // Admin / usuario normal: siempre su propio municipio + ocultar Supers
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("municipio_id")
+            .eq("id", user.id)
+            .single();
+          if (profile?.municipio_id) {
+            query = query.eq("municipio_id", profile.municipio_id);
+          }
+        }
+        query = query.neq("rol", "super");
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data || []) as ContactoPerfil[];
+    },
+    staleTime: 1000 * 60 * 5,
   });
 }

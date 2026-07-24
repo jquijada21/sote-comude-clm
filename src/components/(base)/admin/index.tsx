@@ -1,7 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import AnimatedIcon from "@/components/ui/AnimatedIcon";
-import { getPendingDevicesCount } from "@/components/(SIGET)/admin/lib/actions";
+import { getPendingDevicesCount } from "@/components/(comude)/admin/lib/actions";
 import { canManageUsers } from "@/components/(base)/(users)/usuarios/lib/permissions";
 import { isSuperOrAdminRole } from "@/components/(base)/dashboard/modules";
 import { AdminCards } from "./AdminCards";
@@ -18,7 +18,7 @@ export async function AdminPanel() {
   const role = metadata.rol || user.role || "user";
 
   if (!canManageUsers(role)) {
-    redirect("/siget");
+    redirect("/comude");
   }
 
   const isSuperOrAdmin = isSuperOrAdminRole(role);

@@ -67,7 +67,7 @@ export default function ActividadesItem({
       )}
     >
       <Link
-        href={`/siget/comude/${actividad.id}`}
+        href={`/comude/comude/${actividad.id}`}
         className="w-full group flex items-center justify-between gap-3 p-4 cursor-pointer hover:bg-black/[0.02] dark:hover:bg-white/5 transition-colors focus:outline-none text-left"
       >
         <div className="flex-1 min-w-0">

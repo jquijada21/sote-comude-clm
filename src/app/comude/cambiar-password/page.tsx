@@ -93,7 +93,7 @@ export default function CambiarPasswordPage() {
         timer: 2000,
         showConfirmButton: false
       }).then(() => {
-        router.push("/siget");
+        router.push("/comude");
         router.refresh();
       });
 

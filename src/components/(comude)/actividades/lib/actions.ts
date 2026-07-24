@@ -189,7 +189,7 @@ export async function crearActividadComude(values: CrearActividadValues): Promis
 
   if (partError) throw new Error(partError.message);
 
-  revalidatePath("/siget");
+  revalidatePath("/comude");
   return { id: actividad.id };
 }
 
@@ -226,7 +226,7 @@ export async function editarActividadComude(id: string, values: CrearActividadVa
     if (partError) throw new Error(partError.message);
   }
 
-  revalidatePath("/siget");
+  revalidatePath("/comude");
 }
 
 /** Actualiza la agenda de una actividad COMUDE */
@@ -240,7 +240,7 @@ export async function actualizarAgendaActividad(id: string, agenda: any[]): Prom
 
   if (error) throw new Error(error.message);
 
-  revalidatePath("/siget");
+  revalidatePath("/comude");
 }
 
 /** Actualiza o guarda la URL del acta PDF en la base de datos */
@@ -254,7 +254,7 @@ export async function actualizarActaActividad(id: string, actaUrl: string | null
 
   if (error) throw new Error(error.message);
 
-  revalidatePath("/siget");
+  revalidatePath("/comude");
 }
 
 /** Elimina una actividad COMUDE */

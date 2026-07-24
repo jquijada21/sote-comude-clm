@@ -12,7 +12,7 @@ const ADMIN_ICON_PLATE_CLASS = "dark:rounded-2xl dark:bg-white p-2.5 md:p-3";
 const adminOptions = [
   {
     id: "dispositivos",
-    href: "/siget/admin/dispositivos",
+    href: "/comude/admin/dispositivos",
     title: "Dispositivos",
     desc: "Autorizar o rechazar solicitudes de acceso por dispositivo.",
     iconKey: "gzqipvbr",
@@ -24,7 +24,7 @@ const adminOptions = [
   },
   {
     id: "usuarios",
-    href: "/siget/admin/usuarios",
+    href: "/comude/admin/usuarios",
     title: "Usuarios",
     desc: "Gestionar cuentas, roles y permisos del sistema.",
     iconKey: "vxfekxur",
@@ -36,7 +36,7 @@ const adminOptions = [
   },
   {
     id: "configuraciones",
-    href: "/siget/admin/configuraciones",
+    href: "/comude/admin/configuraciones",
     title: "Configuraciones",
     desc: "Ajustes generales del sistema y variables de seguridad.",
     iconKey: "plusmrxr",
