@@ -12,6 +12,7 @@ import {
   type NodoTerritorial,
   type TipoLugar,
   type PersonaTerritorioOption,
+  type PersonaResidente,
 } from "./zod";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -55,7 +56,7 @@ async function requireAdmin(): Promise<
 
 function construirArbol(
   comunidades: ComunidadRecord[],
-  countsMap: Map<string, number>,
+  residentesMap: Map<string, PersonaResidente[]>,
 ): NodoTerritorial[] {
   const hijosPorPadre = new Map<string | null, ComunidadRecord[]>();
 
@@ -70,7 +71,8 @@ function construirArbol(
       .sort((a, b) => a.nombre.localeCompare(b.nombre))
       .map(buildNode);
 
-    const directCount = countsMap.get(c.id) ?? 0;
+    const directResidentes = residentesMap.get(c.id) ?? [];
+    const directCount = directResidentes.length;
     const hijosCount = hijos.reduce((acc, h) => acc + h.personas_count, 0);
 
     return {
@@ -78,6 +80,7 @@ function construirArbol(
       nombre: c.nombre,
       tipo: c.tipo as TipoLugar,
       personas_count: directCount + hijosCount,
+      residentes: directResidentes,
       hijos,
     };
   }
@@ -107,25 +110,32 @@ export async function getEstructuraTerritorial(): Promise<{
         .order("nombre"),
       supabase
         .from("profiles")
-        .select("comunidad_id")
+        .select("id, nombre, email, dpi, comunidad_id")
         .eq("activo", true)
+        .eq("municipio_id", municipioId)
         .not("comunidad_id", "is", null),
     ]);
 
     if (comunidadesRes.error) return { data: [], municipioId, error: "LOAD_FAILED" };
 
-    const countsMap = new Map<string, number>();
+    const residentesMap = new Map<string, PersonaResidente[]>();
     if (!profilesRes.error && profilesRes.data) {
       for (const row of profilesRes.data) {
         if (row.comunidad_id) {
-          const current = countsMap.get(row.comunidad_id) ?? 0;
-          countsMap.set(row.comunidad_id, current + 1);
+          const list = residentesMap.get(row.comunidad_id) ?? [];
+          list.push({
+            id: String(row.id),
+            nombre: String(row.nombre ?? ""),
+            email: row.email ?? null,
+            dpi: row.dpi ?? null,
+          });
+          residentesMap.set(row.comunidad_id, list);
         }
       }
     }
 
     const comunidades = (comunidadesRes.data ?? []) as ComunidadRecord[];
-    return { data: construirArbol(comunidades, countsMap), municipioId, error: null };
+    return { data: construirArbol(comunidades, residentesMap), municipioId, error: null };
   } catch {
     return { data: [], municipioId: null, error: "LOAD_FAILED" };
   }
@@ -144,6 +154,7 @@ export async function getPersonasParaAsignarTerritorio(comunidadId: string): Pro
         .from("profiles")
         .select("id, nombre, email, dpi, comunidad_id")
         .eq("activo", true)
+        .eq("municipio_id", municipioId)
         .order("nombre"),
       supabase
         .from("lug_comunidades")

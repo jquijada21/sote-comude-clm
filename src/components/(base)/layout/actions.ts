@@ -71,11 +71,6 @@ export async function getInitialGlobalMunicipioState() {
         .maybeSingle();
         
       if (mun?.departamento_id) {
-        // También podemos guardar la cookie por defecto para futuras lecturas
-        const { data: munFull } = await supabase.from("lug_municipios").select("nombre").eq("id", profile.municipio_id).single();
-        if (munFull) {
-          await setGlobalMunicipioCookie(profile.municipio_id, munFull.nombre);
-        }
         return { municipioId: profile.municipio_id, departamentoId: mun.departamento_id };
       }
     }

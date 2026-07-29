@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { useCrearDepartamento, useCrearPuesto, usePuestos } from "../lib/hooks";
 import {
   departamentoFormSchema,
@@ -43,6 +44,8 @@ function CrearBody({
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [jefaturaIds, setJefaturaIds] = useState<string[]>([]);
+  const [fecha, setFecha] = useState("");
+  const [activo, setActivo] = useState(true);
 
   const guardando = crearDepartamento.isPending || crearPuesto.isPending;
 
@@ -128,6 +131,8 @@ function CrearBody({
       departamento_id: presetDepartamentoId,
       jefatura_ids: jefaturaIds,
       orden: 0,
+      fecha: fecha || null,
+      activo,
     });
     if (!values.success) {
       toast.warn("Escribe un nombre válido para el puesto.");
@@ -195,6 +200,44 @@ function CrearBody({
         <p className="text-xs text-muted-foreground">
           En producción aquí se asignan las jefaturas del nuevo puesto.
         </p>
+      )}
+
+      {tipo === "puesto" && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-2">
+            <FormLabel htmlFor="fecha">
+              Fecha <span className="font-normal text-muted-foreground">(opcional)</span>
+            </FormLabel>
+            <FormInput
+              id="fecha"
+              type="date"
+              value={fecha}
+              onChange={(e) => setFecha(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-3 pt-6">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={activo}
+              onClick={() => setActivo(!activo)}
+              className={cn(
+                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                activo ? "bg-green-600" : "bg-zinc-200 dark:bg-zinc-700"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform",
+                  activo ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
+            <FormLabel htmlFor="activo" className="mb-0 cursor-pointer" onClick={() => setActivo(!activo)}>
+              Puesto activo
+            </FormLabel>
+          </div>
+        </div>
       )}
 
       <FormFooter>

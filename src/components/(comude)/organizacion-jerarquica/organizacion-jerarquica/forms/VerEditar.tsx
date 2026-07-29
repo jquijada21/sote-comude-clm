@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { Loader2, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import {
   useEditarDepartamento,
   useEditarPuesto,
@@ -63,6 +64,7 @@ function EditarDepartamentoBody({
   const [nombre, setNombre] = useState(departamento.nombre);
   const [descripcion, setDescripcion] = useState(departamento.descripcion ?? "");
   const [eliminando, setEliminando] = useState(false);
+  const [confirmando, setConfirmando] = useState(false);
 
   const tieneHijos = useMemo(() => {
     if (modoDemo && estructuraDemo) {
@@ -120,8 +122,13 @@ function EditarDepartamentoBody({
     toast.error(modalActionMessage(res.error ?? undefined, "No se pudo eliminar."));
   };
 
-  const handleEliminarClick = async () => {
-    if (modoDemo) {
+  const handleEliminarClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (confirmando || eliminando || eliminar.isPending) return;
+    
+    setConfirmando(true);
+    try {
+      if (modoDemo) {
       if (tieneHijos) {
         await avisoNoEliminableEstructura({
           title: "No se puede eliminar",
@@ -160,6 +167,9 @@ function EditarDepartamentoBody({
     } finally {
       setEliminando(false);
     }
+    } finally {
+      setConfirmando(false);
+    }
   };
 
   return (
@@ -194,7 +204,7 @@ function EditarDepartamentoBody({
         <button
           type="button"
           onClick={handleEliminarClick}
-          disabled={eliminando || eliminar.isPending}
+          disabled={confirmando || eliminando || eliminar.isPending}
           className="flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 text-[10px] font-bold uppercase tracking-widest text-red-400 transition-all hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {eliminando || eliminar.isPending ? (
@@ -238,7 +248,10 @@ function EditarPuestoBody({
 
   const [nombre, setNombre] = useState(puesto.nombre);
   const [jefaturaIds, setJefaturaIds] = useState(puesto.jefatura_ids);
+  const [fecha, setFecha] = useState(puesto.fecha || "");
+  const [activo, setActivo] = useState(puesto.activo ?? true);
   const [eliminando, setEliminando] = useState(false);
+  const [confirmando, setConfirmando] = useState(false);
 
   const tieneHijos = useMemo(() => {
     if (modoDemo && estructuraDemo) {
@@ -265,6 +278,8 @@ function EditarPuestoBody({
       departamento_id: puesto.departamento_id,
       jefatura_ids: jefaturaIds,
       orden: puesto.orden,
+      fecha: fecha || null,
+      activo,
     });
     if (!values.success) {
       toast.warn("Escribe un nombre válido.");
@@ -289,8 +304,13 @@ function EditarPuestoBody({
     toast.error(modalActionMessage(res.error ?? undefined, "No se pudo eliminar."));
   };
 
-  const handleEliminarClick = async () => {
-    if (modoDemo) {
+  const handleEliminarClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (confirmando || eliminando || eliminar.isPending) return;
+
+    setConfirmando(true);
+    try {
+      if (modoDemo) {
       if (tieneHijos) {
         await avisoNoEliminableEstructura({
           title: "No se puede eliminar",
@@ -329,6 +349,9 @@ function EditarPuestoBody({
     } finally {
       setEliminando(false);
     }
+    } finally {
+      setConfirmando(false);
+    }
   };
 
   return (
@@ -347,6 +370,44 @@ function EditarPuestoBody({
         />
       </div>
 
+      {!modoDemo && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-2">
+            <FormLabel htmlFor="fecha-edit">
+              Fecha <span className="font-normal text-muted-foreground">(opcional)</span>
+            </FormLabel>
+            <FormInput
+              id="fecha-edit"
+              type="date"
+              value={fecha}
+              onChange={(e) => setFecha(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-3 pt-6">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={activo}
+              onClick={() => setActivo(!activo)}
+              className={cn(
+                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                activo ? "bg-green-600" : "bg-zinc-200 dark:bg-zinc-700"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform",
+                  activo ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
+            <FormLabel htmlFor="activo-edit" className="mb-0 cursor-pointer" onClick={() => setActivo(!activo)}>
+              Puesto activo
+            </FormLabel>
+          </div>
+        </div>
+      )}
+
       {modoDemo ? (
         <p className="text-xs text-muted-foreground">
           En producción aquí se editan las jefaturas del puesto.
@@ -363,7 +424,7 @@ function EditarPuestoBody({
         <button
           type="button"
           onClick={handleEliminarClick}
-          disabled={eliminando || eliminar.isPending}
+          disabled={confirmando || eliminando || eliminar.isPending}
           className="flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 text-[10px] font-bold uppercase tracking-widest text-red-400 transition-all hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {eliminando || eliminar.isPending ? (

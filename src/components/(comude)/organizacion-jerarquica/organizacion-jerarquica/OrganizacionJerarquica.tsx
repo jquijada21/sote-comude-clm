@@ -11,6 +11,8 @@ import {
   Pencil,
   FlaskConical,
   RotateCcw,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import AnimatedIcon from "@/components/ui/AnimatedIcon";
 import { Button } from "@/components/ui/button";
@@ -44,6 +46,7 @@ export function OrganizacionJerarquica() {
 
   const estructura = data ?? null;
   const [modoSimulacion, setModoSimulacion] = useState(false);
+  const [mostrarInactivos, setMostrarInactivos] = useState(false);
 
   const estructuraMostrada = modoSimulacion
     ? ESTRUCTURA_SIMULADA
@@ -214,6 +217,23 @@ export function OrganizacionJerarquica() {
             <div className="flex shrink-0 w-full flex-col gap-2 px-4 sm:flex-row sm:items-center md:px-0 lg:w-auto">
               <button
                 type="button"
+                onClick={() => setMostrarInactivos((prev) => !prev)}
+                className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-zinc-300 bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 sm:w-auto"
+              >
+                {mostrarInactivos ? (
+                  <>
+                    <EyeOff className="size-4" />
+                    Ocultar inactivos
+                  </>
+                ) : (
+                  <>
+                    <Eye className="size-4" />
+                    Mostrar inactivos
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
                 onClick={() => {
                   setModoSimulacion((prev) => !prev);
                   setOrganigramaOpen(false);
@@ -314,6 +334,7 @@ export function OrganizacionJerarquica() {
                 estructura={estructuraMostrada}
                 admin={admin}
                 espaciadoVertical={modoSimulacion}
+                mostrarInactivos={mostrarInactivos}
               />
             </>
           )}

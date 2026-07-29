@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { isSuperOrAdminRole } from "@/components/(base)/dashboard/modules";
+import { getGlobalMunicipioCookie } from "@/components/(base)/layout/actions";
 import {
   asignarPersonaSchema,
   departamentoFormSchema,
@@ -46,6 +47,36 @@ async function requireAdmin(): Promise<
   return { supabase, error: null };
 }
 
+async function requireAdminConMunicipio(): Promise<
+  | { supabase: SupabaseServerClient; municipioId: number; error: null }
+  | { supabase: null; municipioId: null; error: string }
+> {
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return { supabase: null, municipioId: null, error };
+
+  const cookie = await getGlobalMunicipioCookie();
+  if (cookie?.id) {
+    return { supabase, municipioId: cookie.id, error: null };
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { supabase: null, municipioId: null, error: "UNAUTHORIZED" };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("municipio_id")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!profile?.municipio_id) {
+    return { supabase: null, municipioId: null, error: "NO_MUNICIPIO" };
+  }
+
+  return { supabase, municipioId: profile.municipio_id as number, error: null };
+}
+
 function normalizarDepartamento(
   row: Record<string, unknown>,
 ): DepartamentoRecord {
@@ -56,6 +87,7 @@ function normalizarDepartamento(
     descripcion: (row.descripcion as string | null) ?? null,
     orden: typeof row.orden === "number" ? row.orden : 0,
     activo: row.activo !== false,
+    comunidad_id: (row.comunidad_id as string | null) ?? null,
   };
 }
 
@@ -64,6 +96,11 @@ function normalizarPuesto(
   jefaturaIds: string[],
   jefaturasNombres: string[],
 ): PuestoRecord {
+  let fecha = (row.fecha as string | null) ?? null;
+  if (fecha) {
+    fecha = fecha.split("T")[0].split(" ")[0];
+  }
+
   return {
     id: String(row.id),
     nombre: String(row.nombre ?? ""),
@@ -72,36 +109,41 @@ function normalizarPuesto(
     jefaturas_nombres: jefaturasNombres,
     orden: typeof row.orden === "number" ? row.orden : 0,
     activo: row.activo !== false,
+    fecha,
   };
 }
 
 const DEPARTAMENTOS_SELECT =
-  "id, nombre, parent_id, descripcion";
-const DEPARTAMENTOS_SELECT_BASE = "id, nombre, parent_id";
-const PUESTOS_SELECT_FULL = "id, nombre, departamento_id, orden, activo";
-const PUESTOS_SELECT_BASE = "id, nombre, departamento_id";
+  "id, nombre, parent_id, descripcion, comunidad_id";
+const DEPARTAMENTOS_SELECT_BASE = "id, nombre, parent_id, comunidad_id";
+const PUESTOS_SELECT_FULL = "id, nombre, departamento_id, orden, activo, fecha";
+const PUESTOS_SELECT_BASE = "id, nombre, departamento_id, activo, fecha";
 
-async function listarDepartamentos(supabase: SupabaseServerClient) {
+async function listarDepartamentos(supabase: SupabaseServerClient, municipioId: number) {
   const withDesc = await supabase
     .from("departamentos")
     .select(DEPARTAMENTOS_SELECT)
+    .eq("municipio_id", municipioId)
     .order("nombre");
   if (!withDesc.error) return withDesc;
   return supabase
     .from("departamentos")
     .select(DEPARTAMENTOS_SELECT_BASE)
+    .eq("municipio_id", municipioId)
     .order("nombre");
 }
 
-async function listarPuestos(supabase: SupabaseServerClient) {
+async function listarPuestos(supabase: SupabaseServerClient, municipioId: number) {
   const full = await supabase
     .from("puestos")
     .select(PUESTOS_SELECT_FULL)
+    .eq("municipio_id", municipioId)
     .order("nombre");
   if (!full.error) return full;
   return supabase
     .from("puestos")
     .select(PUESTOS_SELECT_BASE)
+    .eq("municipio_id", municipioId)
     .order("nombre");
 }
 
@@ -139,32 +181,37 @@ function agruparJefaturasPorPuesto(
   return { idsPorPuesto, nombresPorPuesto };
 }
 
-function departamentoPayload(values: DepartamentoFormValues) {
+function departamentoPayload(values: DepartamentoFormValues, municipioId: number) {
   return {
     nombre: values.nombre,
     parent_id: values.parent_id,
     descripcion: values.descripcion?.trim() || null,
+    comunidad_id: values.comunidad_id || null,
+    municipio_id: municipioId,
   };
 }
 
 async function insertarDepartamento(
   supabase: SupabaseServerClient,
   values: DepartamentoFormValues,
+  municipioId: number,
 ) {
   return supabase
     .from("departamentos")
-    .insert(departamentoPayload(values));
+    .insert(departamentoPayload(values, municipioId));
 }
 
 async function actualizarDepartamento(
   supabase: SupabaseServerClient,
   id: string,
   values: DepartamentoFormValues,
+  municipioId: number,
 ) {
   return supabase
     .from("departamentos")
-    .update(departamentoPayload(values))
-    .eq("id", id);
+    .update(departamentoPayload(values, municipioId))
+    .eq("id", id)
+    .eq("municipio_id", municipioId);
 }
 
 type PostgrestErrorLike = { code?: string; message?: string };
@@ -186,10 +233,14 @@ function mapPuestoDbError(error: PostgrestErrorLike | null): string {
 async function insertarPuesto(
   supabase: SupabaseServerClient,
   values: PuestoFormValues,
+  municipioId: number,
 ) {
   const payload = {
     nombre: values.nombre.trim(),
     departamento_id: values.departamento_id,
+    municipio_id: municipioId,
+    fecha: values.fecha ? new Date(values.fecha).toISOString() : null,
+    activo: values.activo,
   };
 
   const withSelect = await supabase
@@ -230,14 +281,18 @@ async function actualizarPuesto(
   supabase: SupabaseServerClient,
   id: string,
   values: PuestoFormValues,
+  municipioId: number,
 ) {
   const base = await supabase
     .from("puestos")
     .update({
       nombre: values.nombre,
       departamento_id: values.departamento_id,
+      fecha: values.fecha ? new Date(values.fecha).toISOString() : null,
+      activo: values.activo,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("municipio_id", municipioId);
 
   if (!base.error) return base;
 
@@ -247,8 +302,11 @@ async function actualizarPuesto(
       nombre: values.nombre,
       departamento_id: values.departamento_id,
       orden: values.orden,
+      fecha: values.fecha ? new Date(values.fecha).toISOString() : null,
+      activo: values.activo,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("municipio_id", municipioId);
 }
 
 async function sincronizarPuestoJefaturas(
@@ -292,20 +350,17 @@ function construirArbol(
   puestos: PuestoRecord[],
   titularesPorPuesto: Map<string, { id: string; nombre: string }>,
 ): NodoOrganizacion {
-  const activos = departamentos.filter((d) => d.activo);
-  const puestosActivos = puestos.filter((p) => p.activo);
-
-  const departamentosPorId = new Map(activos.map((d) => [d.id, d]));
+  const departamentosPorId = new Map(departamentos.map((d) => [d.id, d]));
 
   const hijosPorPadre = new Map<string | null, DepartamentoRecord[]>();
-  for (const dep of activos) {
+  for (const dep of departamentos) {
     const lista = hijosPorPadre.get(dep.parent_id) ?? [];
     lista.push(dep);
     hijosPorPadre.set(dep.parent_id, lista);
   }
 
   const puestosPorDepartamento = new Map<string, PuestoRecord[]>();
-  for (const puesto of puestosActivos) {
+  for (const puesto of puestos) {
     if (!puesto.departamento_id) continue;
     const lista = puestosPorDepartamento.get(puesto.departamento_id) ?? [];
     lista.push(puesto);
@@ -344,6 +399,8 @@ function construirArbol(
       tiene_jefaturas: jefaturasValidasDe(puesto).length > 0,
       titular: titular?.nombre,
       titular_id: titular?.id,
+      fecha: puesto.fecha,
+      activo: puesto.activo,
     };
   };
 
@@ -410,11 +467,12 @@ function construirArbol(
 
 async function cargarPuestosConJefaturas(
   supabase: SupabaseServerClient,
+  municipioId: number,
 ): Promise<PuestoRecord[]> {
   const [puestosRes, asignacionesRes, departamentosRes] = await Promise.all([
-    listarPuestos(supabase),
+    listarPuestos(supabase, municipioId),
     listarPuestoJefaturas(supabase),
-    listarDepartamentos(supabase),
+    listarDepartamentos(supabase, municipioId),
   ]);
 
   if (puestosRes.error) return [];
@@ -446,6 +504,7 @@ async function cargarPuestosConJefaturas(
         departamento_id: puesto.departamento_id,
         orden: puesto.orden,
         activo: puesto.activo,
+        fecha: puesto.fecha,
       },
       idsPorPuesto.get(puesto.id) ?? [],
       nombresPorPuesto.get(puesto.id) ?? [],
@@ -460,11 +519,12 @@ type ProfileTitularRow = {
   puesto_id: string | null;
 };
 
-async function listarProfilesActivos(supabase: SupabaseServerClient) {
+async function listarProfilesActivos(supabase: SupabaseServerClient, municipioId: number) {
   const withEmail = await supabase
     .from("profiles")
     .select("id, nombre, email, puesto_id, activo")
     .eq("activo", true)
+    .eq("municipio_id", municipioId)
     .order("nombre");
   if (!withEmail.error) return withEmail;
 
@@ -472,15 +532,18 @@ async function listarProfilesActivos(supabase: SupabaseServerClient) {
     .from("profiles")
     .select("id, nombre, puesto_id, activo")
     .eq("activo", true)
+    .eq("municipio_id", municipioId)
     .order("nombre");
 }
 
 async function listarTitularesPorPuesto(
   supabase: SupabaseServerClient,
+  municipioId: number,
 ): Promise<Map<string, { id: string; nombre: string }>> {
   const { data, error } = await supabase
     .from("profiles")
     .select("id, nombre, puesto_id")
+    .eq("municipio_id", municipioId)
     .not("puesto_id", "is", null);
 
   const map = new Map<string, { id: string; nombre: string }>();
@@ -504,14 +567,14 @@ export async function getPersonasParaAsignar(puestoId: string): Promise<{
   error: string | null;
 }> {
   try {
-    const { supabase, error } = await requireAdmin();
+    const { supabase, municipioId, error } = await requireAdminConMunicipio();
     if (error || !supabase) {
       return { personas: [], titularActualId: null, error };
     }
 
     const [profilesRes, puestos] = await Promise.all([
-      listarProfilesActivos(supabase),
-      cargarPuestosConJefaturas(supabase),
+      listarProfilesActivos(supabase, municipioId),
+      cargarPuestosConJefaturas(supabase, municipioId),
     ]);
 
     if (profilesRes.error) {
@@ -546,7 +609,7 @@ export async function asignarPersonaAPuesto(
   values: AsignarPersonaValues,
 ): Promise<ActionResult> {
   try {
-    const { supabase, error } = await requireAdmin();
+    const { supabase, municipioId, error } = await requireAdminConMunicipio();
     if (error || !supabase) return { success: false, error };
 
     const parsed = asignarPersonaSchema.safeParse(values);
@@ -589,15 +652,15 @@ export async function getEstructuraOrganizacional(): Promise<{
   error: string | null;
 }> {
   try {
-    const { supabase, error } = await requireAdmin();
+    const { supabase, municipioId, error } = await requireAdminConMunicipio();
     if (error || !supabase) {
       return { data: null, error };
     }
 
     const [departamentosRes, puestos, titularesPorPuesto] = await Promise.all([
-      listarDepartamentos(supabase),
-      cargarPuestosConJefaturas(supabase),
-      listarTitularesPorPuesto(supabase),
+      listarDepartamentos(supabase, municipioId),
+      cargarPuestosConJefaturas(supabase, municipioId),
+      listarTitularesPorPuesto(supabase, municipioId),
     ]);
 
     if (departamentosRes.error) {
@@ -617,10 +680,10 @@ export async function getEstructuraOrganizacional(): Promise<{
 }
 
 export async function getDepartamentos(): Promise<DepartamentoRecord[]> {
-  const { supabase, error } = await requireAdmin();
+  const { supabase, municipioId, error } = await requireAdminConMunicipio();
   if (error || !supabase) return [];
 
-  const { data, error: queryError } = await listarDepartamentos(supabase);
+  const { data, error: queryError } = await listarDepartamentos(supabase, municipioId);
 
   if (queryError) return [];
   return (data ?? []).map((row) =>
@@ -629,10 +692,10 @@ export async function getDepartamentos(): Promise<DepartamentoRecord[]> {
 }
 
 export async function getPuestos(): Promise<PuestoRecord[]> {
-  const { supabase, error } = await requireAdmin();
+  const { supabase, municipioId, error } = await requireAdminConMunicipio();
   if (error || !supabase) return [];
 
-  return cargarPuestosConJefaturas(supabase);
+  return cargarPuestosConJefaturas(supabase, municipioId);
 }
 
 function generaCiclo(
@@ -666,7 +729,7 @@ export async function createDepartamento(
   values: DepartamentoFormValues,
 ): Promise<ActionResult> {
   try {
-    const { supabase, error } = await requireAdmin();
+    const { supabase, municipioId, error } = await requireAdminConMunicipio();
     if (error || !supabase) return { success: false, error };
 
     const parsed = departamentoFormSchema.safeParse(values);
@@ -675,6 +738,7 @@ export async function createDepartamento(
     const { error: insertError } = await insertarDepartamento(
       supabase,
       parsed.data,
+      municipioId,
     );
 
     if (insertError) return { success: false, error: "SAVE_FAILED" };
@@ -689,7 +753,7 @@ export async function updateDepartamento(
   values: DepartamentoFormValues,
 ): Promise<ActionResult> {
   try {
-    const { supabase, error } = await requireAdmin();
+    const { supabase, municipioId, error } = await requireAdminConMunicipio();
     if (error || !supabase) return { success: false, error };
 
     const parsed = departamentoFormSchema.safeParse(values);
@@ -697,7 +761,8 @@ export async function updateDepartamento(
 
     const { data: existentes, error: fetchError } = await supabase
       .from("departamentos")
-      .select("id, parent_id");
+      .select("id, parent_id")
+      .eq("municipio_id", municipioId);
 
     if (fetchError) return { success: false, error: "SAVE_FAILED" };
 
@@ -715,6 +780,7 @@ export async function updateDepartamento(
       supabase,
       id,
       parsed.data,
+      municipioId,
     );
 
     if (updateError) return { success: false, error: "SAVE_FAILED" };
@@ -726,7 +792,7 @@ export async function updateDepartamento(
 
 export async function deleteDepartamento(id: string): Promise<ActionResult> {
   try {
-    const { supabase, error } = await requireAdmin();
+    const { supabase, error } = await requireAdminConMunicipio();
     if (error || !supabase) return { success: false, error };
 
     const [{ count: subDepartamentos }, { count: puestos }] = await Promise.all([
@@ -754,6 +820,17 @@ export async function deleteDepartamento(id: string): Promise<ActionResult> {
   } catch {
     return { success: false, error: "DELETE_FAILED" };
   }
+}
+
+export async function getComunidadesTerritoriales(): Promise<{ id: string; nombre: string; tipo: string }[]> {
+  const { supabase, municipioId, error } = await requireAdminConMunicipio();
+  if (error || !supabase) return [];
+  const { data } = await supabase
+    .from("lug_comunidades")
+    .select("id, nombre, tipo")
+    .eq("municipio_id", municipioId)
+    .order("nombre");
+  return data ?? [];
 }
 
 function validarCreacionPuesto(
@@ -817,13 +894,13 @@ export async function createPuesto(
   values: PuestoFormValues,
 ): Promise<ActionResult> {
   try {
-    const { supabase, error } = await requireAdmin();
+    const { supabase, municipioId, error } = await requireAdminConMunicipio();
     if (error || !supabase) return { success: false, error };
 
     const parsed = puestoFormSchema.safeParse(values);
     if (!parsed.success) return { success: false, error: "INVALID_INPUT" };
 
-    const departamentosRes = await listarDepartamentos(supabase);
+    const departamentosRes = await listarDepartamentos(supabase, municipioId);
     const departamentos = departamentosRes.error
       ? []
       : (departamentosRes.data ?? []).map((row) =>
@@ -836,7 +913,7 @@ export async function createPuesto(
       parsed.data.jefatura_ids,
     );
 
-    const puestos = await cargarPuestosConJefaturas(supabase);
+    const puestos = await cargarPuestosConJefaturas(supabase, municipioId);
     const reglaError = validarCreacionPuesto(
       puestos,
       parsed.data.departamento_id,
@@ -844,10 +921,14 @@ export async function createPuesto(
     );
     if (reglaError) return { success: false, error: reglaError };
 
-    const insertRes = await insertarPuesto(supabase, {
-      ...parsed.data,
-      jefatura_ids: jefaturaIds,
-    });
+    const insertRes = await insertarPuesto(
+      supabase,
+      {
+        ...parsed.data,
+        jefatura_ids: jefaturaIds,
+      },
+      municipioId,
+    );
 
     if (!insertRes.id) {
       return {
@@ -882,13 +963,13 @@ export async function updatePuesto(
   values: PuestoFormValues,
 ): Promise<ActionResult> {
   try {
-    const { supabase, error } = await requireAdmin();
+    const { supabase, municipioId, error } = await requireAdminConMunicipio();
     if (error || !supabase) return { success: false, error };
 
     const parsed = puestoFormSchema.safeParse(values);
     if (!parsed.success) return { success: false, error: "INVALID_INPUT" };
 
-    const departamentosRes = await listarDepartamentos(supabase);
+    const departamentosRes = await listarDepartamentos(supabase, municipioId);
     const departamentos = departamentosRes.error
       ? []
       : (departamentosRes.data ?? []).map((row) =>
@@ -905,6 +986,7 @@ export async function updatePuesto(
       supabase,
       id,
       parsed.data,
+      municipioId,
     );
 
     if (updateError) return { success: false, error: "SAVE_FAILED" };
@@ -932,7 +1014,7 @@ export async function reubicarPuesto(
   values: ReubicarPuestoValues,
 ): Promise<ActionResult> {
   try {
-    const { supabase, error } = await requireAdmin();
+    const { supabase, municipioId, error } = await requireAdminConMunicipio();
     if (error || !supabase) return { success: false, error };
 
     const parsed = reubicarPuestoSchema.safeParse(values);
@@ -942,9 +1024,9 @@ export async function reubicarPuesto(
       parsed.data;
 
     const [departamentosRes, puestos, titularesPorPuesto] = await Promise.all([
-      listarDepartamentos(supabase),
-      cargarPuestosConJefaturas(supabase),
-      listarTitularesPorPuesto(supabase),
+      listarDepartamentos(supabase, municipioId),
+      cargarPuestosConJefaturas(supabase, municipioId),
+      listarTitularesPorPuesto(supabase, municipioId),
     ]);
 
     const puesto = puestos.find((p) => p.id === puestoId);
@@ -997,13 +1079,13 @@ export async function reubicarPuesto(
 
 export async function deletePuesto(id: string): Promise<ActionResult> {
   try {
-    const { supabase, error } = await requireAdmin();
+    const { supabase, municipioId, error } = await requireAdminConMunicipio();
     if (error || !supabase) return { success: false, error };
 
     const [departamentosRes, puestos, titularesPorPuesto] = await Promise.all([
-      listarDepartamentos(supabase),
-      cargarPuestosConJefaturas(supabase),
-      listarTitularesPorPuesto(supabase),
+      listarDepartamentos(supabase, municipioId),
+      cargarPuestosConJefaturas(supabase, municipioId),
+      listarTitularesPorPuesto(supabase, municipioId),
     ]);
 
     if (!departamentosRes.error) {

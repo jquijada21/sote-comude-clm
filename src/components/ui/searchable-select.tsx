@@ -71,10 +71,16 @@ export function SearchableSelect({
             setOpen(true);
           }}
           onClick={() => {
-            if (!disabled) setOpen(true);
+            if (!disabled) {
+              setOpen(true);
+              setQuery("");
+            }
           }}
           onFocus={() => {
-            if (!disabled) setOpen(true);
+            if (!disabled) {
+              setOpen(true);
+              setQuery("");
+            }
           }}
         />
         <ChevronDown 

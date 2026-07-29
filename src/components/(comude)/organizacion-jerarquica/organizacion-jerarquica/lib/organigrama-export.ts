@@ -93,9 +93,9 @@ function applyLinkStrokes(clone: SVGSVGElement) {
 }
 
 const LEGEND_ITEMS = [
-  { color: "#2c5f9b", label: "Departamento / Dependencia / Oficina" },
-  { color: "#d97706", label: "Director / Encargado / Coordinador" },
-  { color: "#059669", label: "Puesto / Consultoría" },
+  { color: "#2c5f9b", label: "Órgano / Comisión / Mesa de Trabajo" },
+  { color: "#d97706", label: "Coordinador / Presidente / Encargado" },
+  { color: "#059669", label: "Integrante / Miembro / Vocal" },
 ] as const;
 
 function roundRectPath(

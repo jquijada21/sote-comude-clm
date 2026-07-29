@@ -101,17 +101,17 @@ const ORG_LEYENDA = [
   {
     swatch: "bg-azul-trifinio",
     text: "text-azul-trifinio",
-    label: "Departamento / Dependencia / Oficina",
+    label: "Órgano / Comisión / Mesa de Trabajo",
   },
   {
     swatch: "bg-amber-500",
     text: "text-amber-600 dark:text-amber-400",
-    label: "Director / Encargado / Coordinador",
+    label: "Coordinador / Presidente / Encargado",
   },
   {
     swatch: "bg-emerald-600",
     text: "text-emerald-600",
-    label: "Puesto / Consultoría",
+    label: "Integrante / Miembro / Vocal",
   },
 ] as const;
 

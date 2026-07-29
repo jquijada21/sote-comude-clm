@@ -23,6 +23,7 @@ import {
   Pencil,
   Building2,
   ArrowRightLeft,
+  CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { NodoOrganizacion } from "./lib/zod";
@@ -63,6 +64,18 @@ type TreeExpansionContextValue = {
 const TreeExpansionContext = createContext<TreeExpansionContextValue | null>(
   null,
 );
+
+function formatFechaCorto(iso: string | null | undefined) {
+  if (!iso) return "";
+  const d = new Date(iso + (iso.includes("T") ? "" : "T12:00:00"));
+  if (isNaN(d.getTime())) return "";
+  const days = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+  const dayName = days[d.getDay()];
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yy = String(d.getFullYear()).slice(-2);
+  return `${dayName} ${dd}/${mm}/${yy}`;
+}
 
 function collectExpandableIds(nodo: NodoOrganizacion): string[] {
   const ids: string[] = [];
@@ -156,12 +169,14 @@ function NodoItem({
   variant = "default",
   admin,
   espaciadoVertical = false,
+  mostrarInactivos = false,
 }: {
   nodo: NodoOrganizacion;
   depth?: number;
   variant?: "root" | "default";
   admin?: AdminHandlers;
   espaciadoVertical?: boolean;
+  mostrarInactivos?: boolean;
 }) {
   const { isExpanded, toggle, allExpanded, setAllExpanded } = useTreeExpansion();
   const expanded = isExpanded(nodo.id);
@@ -271,16 +286,26 @@ function NodoItem({
           ) : null}
 
           <div className="min-w-0 flex-1">
-            <p
-              className={cn(
-                "leading-tight text-foreground",
-                isRoot && "text-lg font-black md:text-xl",
-                isDepartamento && "text-sm font-black md:text-base",
-                isPuesto && "text-sm font-semibold tracking-tight md:text-[0.9375rem]",
+
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <p
+                className={cn(
+                  "leading-tight text-foreground",
+                  isRoot && "text-lg font-black md:text-xl",
+                  isDepartamento && "text-sm font-black md:text-base",
+                  isPuesto && "text-sm font-semibold tracking-tight md:text-[0.9375rem]",
+                )}
+              >
+                {nodo.nombre}
+              </p>
+              {isPuesto && nodo.fecha && (
+                <div className="flex items-center gap-1.5 shrink-0 text-xs font-medium text-muted-foreground/70">
+                  <span className="opacity-50">·</span>
+                  <CalendarDays className="size-3.5 opacity-70" />
+                  {formatFechaCorto(nodo.fecha)}
+                </div>
               )}
-            >
-              {nodo.nombre}
-            </p>
+            </div>
             <AnimatePresence initial={false}>
               {nodo.descripcion && !isPuesto && (
                 <motion.p
@@ -454,7 +479,9 @@ function NodoItem({
                   : "mt-1 space-y-1 md:mt-3 md:space-y-3",
               )}
             >
-              {nodo.hijos!.map((hijo, index) => (
+              {(nodo.hijos || [])
+                .filter((h) => mostrarInactivos || h.activo !== false)
+                .map((hijo, index) => (
                 <motion.div
                   key={hijo.id}
                   initial={{ opacity: 0, y: -6 }}
@@ -471,6 +498,7 @@ function NodoItem({
                     depth={depth + 1}
                     admin={admin}
                     espaciadoVertical={espaciadoVertical}
+                    mostrarInactivos={mostrarInactivos}
                   />
                 </motion.div>
               ))}
@@ -505,10 +533,12 @@ export function OrganizacionTree({
   estructura,
   admin,
   espaciadoVertical = false,
+  mostrarInactivos = false,
 }: {
   estructura: NodoOrganizacion;
   admin?: AdminHandlers;
   espaciadoVertical?: boolean;
+  mostrarInactivos?: boolean;
 }) {
   return (
     <TreeExpansionProvider estructura={estructura}>
@@ -518,6 +548,7 @@ export function OrganizacionTree({
           variant="root"
           admin={admin}
           espaciadoVertical={espaciadoVertical}
+          mostrarInactivos={mostrarInactivos}
         />
       </div>
     </TreeExpansionProvider>

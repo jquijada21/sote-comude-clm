@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { useUserContext } from "@/components/(base)/providers/UserProvider";
 import { isSuperOrAdminRole } from "@/components/(base)/dashboard/modules";
 import { OrganizacionJerarquica } from "./OrganizacionJerarquica";
-import { EstructuraTerritorial } from "../organizacion-territorial/EstructuraTerritorial";
+import { OrganizacionTerritorial } from "../organizacion-territorial/OrganizacionTerritorial";
 
 type TipoEstructura = "organizacional" | "territorial";
 
@@ -98,7 +98,10 @@ export function EstructurasPage() {
                   {isActive && (
                     <span
                       className={cn(
-                        "absolute left-0 top-3 bottom-3 w-1 rounded-r-full",
+                        "absolute top-3 bottom-3 w-1",
+                        op.id === "organizacional"
+                          ? "right-0 rounded-l-full"
+                          : "left-0 rounded-r-full",
                         op.dotColor,
                       )}
                     />
@@ -149,7 +152,7 @@ export function EstructurasPage() {
         {activa === "organizacional" ? (
           <OrganizacionJerarquica />
         ) : (
-          <EstructuraTerritorial />
+          <OrganizacionTerritorial />
         )}
       </div>
     </div>

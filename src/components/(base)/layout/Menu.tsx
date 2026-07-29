@@ -596,12 +596,6 @@ export default function Menu({ isOpen, setIsOpen, user }: MenuProps) {
                 </div>
               </div>
 
-              {(pathname === "/" || pathname === "/comude") && (
-                <div className="lg:hidden mt-3 p-3 bg-white/90 dark:bg-zinc-900/90 rounded-2xl ring-1 ring-white/60 dark:ring-zinc-700/60 flex justify-center">
-                  <GlobalMunicipioSelector />
-                </div>
-              )}
-
               <button
                 type="button"
                 onClick={() => setIsManualOpen(true)}
@@ -610,6 +604,12 @@ export default function Menu({ isOpen, setIsOpen, user }: MenuProps) {
                 <BookOpen className="size-4 text-celeste-trifinio shrink-0" strokeWidth={2.25} />
                 <span className="text-xs font-bold text-celeste-trifinio">Manual de Usuario</span>
               </button>
+
+              {(pathname === "/" || pathname === "/comude") && (
+                <div className="mt-3 p-3 bg-white/90 dark:bg-zinc-900/90 rounded-2xl ring-1 ring-white/60 dark:ring-zinc-700/60 flex justify-center">
+                  <GlobalMunicipioSelector />
+                </div>
+              )}
             </div>
           </div>
         ) : (

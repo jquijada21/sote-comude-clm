@@ -39,3 +39,14 @@
   width: 100%;
   height: 100%;
 }
+
+.territorial-link {
+  stroke: color-mix(in srgb, #52525b 50%, transparent) !important;
+  stroke-width: 2.5px !important;
+  fill: none !important;
+}
+
+.dark .territorial-link {
+  stroke: color-mix(in srgb, #a1a1aa 50%, transparent) !important;
+}
+

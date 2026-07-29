@@ -391,6 +391,7 @@ export function departamentoDemoDesdeId(
     descripcion: nodo.descripcion ?? null,
     orden: 0,
     activo: true,
+    comunidad_id: null,
   };
 }
 
@@ -408,6 +409,7 @@ export function puestoDemoDesdeId(
     jefaturas_nombres: [],
     orden: 0,
     activo: true,
+    fecha: null,
   };
 }
 

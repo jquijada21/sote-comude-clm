@@ -62,7 +62,7 @@ function PersonaSearchField({
 
   const filtered = useMemo(() => {
     const term = normalizeSearchText(query.trim());
-    if (term.length < 1) return [];
+    if (term.length < 1) return personas.slice(0, 8);
     return personas
       .filter(
         (p) =>
@@ -87,7 +87,8 @@ function PersonaSearchField({
         id="persona-puesto"
         value={query}
         onChange={(e) => handleChange(e.target.value)}
-        onFocus={() => query.trim().length >= 1 && setOpen(true)}
+        onFocus={() => setOpen(true)}
+        onClick={() => setOpen(true)}
         autoComplete="off"
       />
       {profileId && (
@@ -103,7 +104,7 @@ function PersonaSearchField({
           Quitar asignación
         </button>
       )}
-      {open && query.trim().length >= 1 && (
+      {open && (
         <ul className="mt-1 max-h-52 w-full overflow-y-auto rounded-lg border-2 border-celeste-trifinio/40 bg-zinc-100 shadow-md dark:bg-zinc-800">
           {filtered.length === 0 ? (
             <li className="px-3 py-2 text-sm text-muted-foreground">
@@ -146,11 +147,7 @@ function PersonaSearchField({
           )}
         </ul>
       )}
-      {query.trim().length < 1 && !profileId && (
-        <p className="text-xs text-muted-foreground">
-          Escribe para buscar entre los usuarios activos.
-        </p>
-      )}
+
     </div>
   );
 }

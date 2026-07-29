@@ -206,3 +206,12 @@ function translateError(msg: string): string {
   }
   return "Error al crear el usuario: " + msg;
 }
+
+export async function getAllMunicipios() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("lug_municipios")
+    .select("id, nombre, lug_departamentos(nombre)")
+    .order("nombre");
+  return data || [];
+}

@@ -17,6 +17,7 @@ function elevateSwalZIndex() {
   const container = Swal.getContainer();
   if (container) {
     container.style.zIndex = "99999";
+    container.style.pointerEvents = "auto";
   }
 }
 

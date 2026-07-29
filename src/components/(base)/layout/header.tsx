@@ -126,9 +126,6 @@ export default function Header() {
           </div>
 
           <div className="flex items-center gap-5 md:gap-4 shrink-0">
-            <div className="hidden lg:flex items-center">
-              {isPrincipal && <GlobalMunicipioSelector />}
-            </div>
             <AnimatedThemeToggler />
             <button
               id="refresh-btn"
@@ -198,11 +195,6 @@ export default function Header() {
           <div className="shrink-0">
             <BreadcrumbNav />
           </div>
-          {isPrincipal && (
-            <div className="flex-1 flex justify-end min-w-0">
-              <GlobalMunicipioSelector />
-            </div>
-          )}
         </div>
       )}
 

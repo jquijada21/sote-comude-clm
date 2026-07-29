@@ -8,6 +8,8 @@ export const nodoOrganizacionSchema: z.ZodType<{
   tiene_jefaturas?: boolean;
   titular?: string;
   titular_id?: string;
+  fecha?: string | null;
+  activo?: boolean;
   hijos?: NodoOrganizacion[];
 }> = z.lazy(() =>
   z.object({
@@ -18,6 +20,8 @@ export const nodoOrganizacionSchema: z.ZodType<{
     tiene_jefaturas: z.boolean().optional(),
     titular: z.string().optional(),
     titular_id: z.string().uuid().optional(),
+    fecha: z.string().nullable().optional(),
+    activo: z.boolean().optional(),
     hijos: z.array(nodoOrganizacionSchema).optional(),
   }),
 );
@@ -38,6 +42,7 @@ export const departamentoFormSchema = z.object({
   parent_id: z.string().uuid().nullable().default(null),
   descripcion: z.string().trim().max(500).optional().default(""),
   orden: z.coerce.number().int().min(0).default(0),
+  comunidad_id: z.string().nullable().optional().default(null),
 });
 
 export type DepartamentoFormValues = z.infer<typeof departamentoFormSchema>;
@@ -47,6 +52,8 @@ export const puestoFormSchema = z.object({
   departamento_id: z.string().uuid("Seleccione un departamento"),
   jefatura_ids: z.array(z.string().uuid()).default([]),
   orden: z.coerce.number().int().min(0).default(0),
+  fecha: z.string().nullable().optional().default(null),
+  activo: z.boolean().default(true),
 });
 
 export type PuestoFormValues = z.infer<typeof puestoFormSchema>;
@@ -58,6 +65,7 @@ export type DepartamentoRecord = {
   descripcion: string | null;
   orden: number;
   activo: boolean;
+  comunidad_id: string | null;
 };
 
 export type PuestoRecord = {
@@ -68,6 +76,7 @@ export type PuestoRecord = {
   jefaturas_nombres: string[];
   orden: number;
   activo: boolean;
+  fecha: string | null;
 };
 
 export function departamentoTieneJefe(

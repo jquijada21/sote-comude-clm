@@ -24,6 +24,13 @@ export interface ComunidadRecord {
   tipo: TipoLugar;
 }
 
+export interface PersonaResidente {
+  id: string;
+  nombre: string;
+  email: string | null;
+  dpi: string | null;
+}
+
 export interface PersonaTerritorioOption {
   id: string;
   nombre: string;
@@ -38,6 +45,7 @@ export interface NodoTerritorial {
   nombre: string;
   tipo: TipoLugar;
   personas_count: number;
+  residentes: PersonaResidente[];
   hijos: NodoTerritorial[];
 }
 
