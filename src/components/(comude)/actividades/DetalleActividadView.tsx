@@ -32,7 +32,7 @@ import Swal from "sweetalert2";
 import DetalleUbicacionModal from "./modals/DetalleUbicacionModal";
 import CrearComude from "./modals/CrearComude";
 import JustificacionAsistenciaModal from "./modals/JustificacionAsistenciaModal";
-import { JustificacionRegistro, TipoRegistro } from "./lib/types";
+
 import ImageUploader from "@/components/(uploads)/imgs/ImageUploader";
 import { useStorageDisplayUrl } from "@/components/(uploads)/imgs/useStorageDisplayUrl";
 import {
@@ -423,6 +423,7 @@ export default function DetalleActividadView({
   };
 
   const handleSubirEvidencia = async (newPath: string) => {
+    if (!actividad) return;
     try {
       const currentImages = actividad.img || [];
       if (currentImages.length >= 4) {
@@ -436,6 +437,7 @@ export default function DetalleActividadView({
   };
 
   const handleEliminarEvidencia = async (pathToRemove: string) => {
+    if (!actividad) return;
     try {
       const supabase = createClient();
       
@@ -454,6 +456,7 @@ export default function DetalleActividadView({
   };
 
   const handleReemplazarEvidencia = async (oldPath: string, newPath: string) => {
+    if (!actividad) return;
     try {
       const currentImages = actividad.img || [];
       const newImages = currentImages.map(p => p === oldPath ? newPath : p);
@@ -874,7 +877,7 @@ export default function DetalleActividadView({
                     entrada: registros.find(r => r.usuario_id === participanteYo.usuario_id && r.tipo_registro === "entrada") || null,
                     salida: registros.find(r => r.usuario_id === participanteYo.usuario_id && r.tipo_registro === "salida") || null
                   })}
-                  isMuyTemprano={isMuyTemprano}
+
                 />
               </div>
             )}
