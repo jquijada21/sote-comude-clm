@@ -27,8 +27,8 @@ export default function Header() {
   const pathname = usePathname();
   const isPublicHome = pathname === "/";
   const isPrincipal = pathname === "/comude" || pathname === "/";
-  const isLoginPage = pathname === "/login";
-  const showLoginButton = isPublicHome && !user;
+  const isLoginPage = pathname === "/login" || pathname === "/";
+  const showLoginButton = !user && !isLoginPage;
   const showBreadcrumb = Boolean(user) && !isLoginPage;
   const showHamburger = Boolean(user);
 

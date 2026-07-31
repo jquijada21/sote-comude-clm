@@ -82,9 +82,9 @@ function convertToD3(nodo: NodoTerritorial): TerritorialNodeDatum {
 }
 
 const LEYENDA_TERRITORIAL = [
-  { color: "#3b82f6", label: "Microrregión (Nivel 1)" },
-  { color: "#10b981", label: "Aldea (Nivel 2)" },
-  { color: "#f59e0b", label: "Caserío (Nivel 3)" },
+  { tipo: "microrregion", color: "#3b82f6", label: "Microrregión", icon: Layers },
+  { tipo: "aldea", color: "#10b981", label: "Aldea", icon: TreePine },
+  { tipo: "caserio", color: "#f59e0b", label: "Caserío", icon: Home },
 ] as const;
 
 export function OrganigramaTerritorialVertical({
@@ -96,10 +96,23 @@ export function OrganigramaTerritorialVertical({
   onClose: () => void;
   municipioNombre?: string;
 }) {
-  const [ocultarNombres, setOcultarNombres] = useState(false);
   const [copiado, setCopiado] = useState(false);
   const [zoom, setZoom] = useState(0.8);
   const [translate, setTranslate] = useState({ x: 600, y: 120 });
+
+  const stats = useMemo(() => {
+    const counts = { microrregion: 0, aldea: 0, caserio: 0 };
+    const traverse = (n: NodoTerritorial[]) => {
+      n.forEach((nodo) => {
+        if (nodo.tipo in counts) {
+          counts[nodo.tipo as keyof typeof counts]++;
+        }
+        if (nodo.hijos) traverse(nodo.hijos);
+      });
+    };
+    traverse(nodos);
+    return counts;
+  }, [nodos]);
 
   const treeData = useMemo<TerritorialNodeDatum>(() => {
     const totalPersonas = nodos.reduce((acc, n) => acc + n.personas_count, 0);
@@ -133,8 +146,6 @@ export function OrganigramaTerritorialVertical({
     const isRaiz = custom.tipo === "raiz";
     const tipo = isRaiz ? "microrregion" : (custom.tipo as TipoLugar);
     const styles = TIPO_STYLES[tipo];
-    const Icon = isRaiz ? Layers : styles.icon;
-
     const cardW = 180;
     const cardH = 64;
 
@@ -152,25 +163,22 @@ export function OrganigramaTerritorialVertical({
             // @ts-expect-error - xmlns is required for Safari/WebKit to render foreignObject correctly
             xmlns="http://www.w3.org/1999/xhtml"
             className={cn(
-              "flex h-full w-full cursor-pointer items-center gap-2 overflow-hidden rounded-xl border-2 p-2.5 shadow-md",
+              "flex h-full w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 p-2.5 shadow-md text-center",
               isRaiz
                 ? "border-emerald-500 bg-emerald-600 text-white dark:bg-emerald-700"
                 : cn(styles.border, styles.text),
             )}
           >
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-black/10 dark:bg-white/10">
-              <Icon className="size-4" strokeWidth={2.25} />
-            </span>
-            <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 flex-1 flex-col items-center justify-center">
               <p
                 className={cn(
-                  "truncate text-xs font-black leading-tight",
+                  "w-full truncate text-xs font-black leading-tight",
                   isRaiz ? "text-white" : "text-zinc-900 dark:text-zinc-100",
                 )}
               >
-                {ocultarNombres ? "••••••••" : data.name}
+                {data.name}
               </p>
-              <div className="flex w-full min-w-0 shrink-0 items-center justify-between mt-1">
+              <div className="mt-1 flex w-full min-w-0 shrink-0 items-center justify-center">
                 <p
                   className={cn(
                     "truncate text-[9px] font-black uppercase tracking-widest",
@@ -179,17 +187,6 @@ export function OrganigramaTerritorialVertical({
                 >
                   {custom.tipo}
                 </p>
-                <div
-                  className={cn(
-                    "flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold shadow-sm",
-                    isRaiz
-                      ? "bg-emerald-700 text-white"
-                      : "bg-white/80 dark:bg-zinc-900/80",
-                  )}
-                >
-                  <Users className="size-3" />
-                  <span>{custom.personas_count}</span>
-                </div>
               </div>
             </div>
           </div>
@@ -267,21 +264,6 @@ export function OrganigramaTerritorialVertical({
 
           <button
             type="button"
-            onClick={() => setOcultarNombres((v) => !v)}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-card px-3 py-2 text-xs font-bold transition-colors hover:bg-accent"
-          >
-            {ocultarNombres ? (
-              <Eye className="size-4 text-emerald-500" />
-            ) : (
-              <EyeOff className="size-4" />
-            )}
-            <span className="hidden sm:inline">
-              {ocultarNombres ? "Mostrar nombres" : "Ocultar nombres"}
-            </span>
-          </button>
-
-          <button
-            type="button"
             onClick={onClose}
             className="flex size-9 items-center justify-center rounded-xl bg-zinc-100 text-muted-foreground transition-colors hover:bg-zinc-200 hover:text-foreground dark:bg-zinc-800 dark:hover:bg-zinc-700"
           >
@@ -298,15 +280,19 @@ export function OrganigramaTerritorialVertical({
             Leyenda territorial
           </p>
           <div className="space-y-1.5">
-            {LEYENDA_TERRITORIAL.map((item) => (
-              <div key={item.label} className="flex items-center gap-2 text-xs font-bold">
-                <span
-                  className="size-2.5 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                />
-                <span className="text-foreground">{item.label}</span>
-              </div>
-            ))}
+            {LEYENDA_TERRITORIAL.map((item) => {
+              const Icon = item.icon;
+              const count = stats[item.tipo];
+              return (
+                <div key={item.label} className="flex items-center justify-between gap-4 text-xs font-bold">
+                  <div className="flex items-center gap-2">
+                    <Icon className="size-4" style={{ color: item.color }} />
+                    <span className="text-foreground">{item.label}</span>
+                  </div>
+                  <span className="text-muted-foreground">{count}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
