@@ -69,7 +69,9 @@ export function OrganigramaExportMenu({
         ) : (
           <Download className="size-4 shrink-0" />
         )}
-        <span>{busyId ? "Generando..." : "Exportar"}</span>
+        <span className="hidden sm:inline">
+          {busyId ? "Generando..." : "Exportar"}
+        </span>
       </button>
 
       {open && (

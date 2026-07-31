@@ -29,6 +29,8 @@ import type { NodoTerritorial, TipoLugar } from "./lib/zod";
 import { TIPO_LABELS, TIPOS_HIJOS } from "./lib/zod";
 import {
   OrgActionButton,
+  ORG_ACTIONS_BAR,
+  ORG_ACTIONS_HOVER,
   type TerritorialAdminHandlers,
 } from "./lib/org-actions";
 import { VerMiembrosModal } from "./modals/VerMiembrosModal";
@@ -170,19 +172,22 @@ export function ToolbarExpansionTerritorial() {
 function RowAccionesNode({
   nodo,
   adminHandlers,
+  parentId,
 }: {
   nodo: NodoTerritorial;
   adminHandlers?: TerritorialAdminHandlers;
+  parentId: string | null;
 }) {
   if (!adminHandlers) return null;
-  const tipoHijo = TIPOS_HIJOS[nodo.tipo];
 
   return (
     <div className="flex shrink-0 self-stretch items-stretch divide-x divide-emerald-500/30 overflow-visible border-l border-emerald-500/30">
-      {tipoHijo && (
+      {TIPOS_HIJOS[nodo.tipo] && (
         <OrgActionButton
-          label={`Agregar ${TIPO_LABELS[tipoHijo]}`}
-          onClick={() => adminHandlers.onAddComunidad(nodo.id, tipoHijo)}
+          label={`Agregar ${TIPO_LABELS[TIPOS_HIJOS[nodo.tipo]!]}`}
+          onClick={() =>
+            adminHandlers.onAddComunidad(nodo.id, TIPOS_HIJOS[nodo.tipo]!)
+          }
         >
           <Plus className="size-4" strokeWidth={2.25} />
         </OrgActionButton>
@@ -197,23 +202,9 @@ function RowAccionesNode({
 
       <OrgActionButton
         label="Editar"
-        onClick={() => adminHandlers.onEditComunidad(nodo.id, nodo.nombre, nodo.tipo)}
+        onClick={() => adminHandlers.onEditComunidad(nodo.id, nodo.nombre, nodo.tipo, nodo.hijos.length > 0, parentId)}
       >
         <Pencil className="size-4" strokeWidth={2.25} />
-      </OrgActionButton>
-
-      <OrgActionButton
-        label="Eliminar"
-        onClick={() =>
-          adminHandlers.onDeleteComunidad(
-            nodo.id,
-            nodo.nombre,
-            nodo.tipo,
-            nodo.hijos.length > 0,
-          )
-        }
-      >
-        <Trash2 className="size-4 text-red-500" strokeWidth={2.25} />
       </OrgActionButton>
     </div>
   );
@@ -222,10 +213,12 @@ function RowAccionesNode({
 function NodoItem({
   nodo,
   adminHandlers,
+  parentId = null,
   depth = 0,
 }: {
   nodo: NodoTerritorial;
   adminHandlers?: TerritorialAdminHandlers;
+  parentId?: string | null;
   depth?: number;
 }) {
   const { isExpanded, toggle } = useExpansion();
@@ -239,7 +232,7 @@ function NodoItem({
   const totalMiembros = contarMiembrosTotal(nodo);
   const tieneHijosConMiembros = tieneHijos && totalMiembros > miembrosDirectos;
 
-  const onChevronClick = (e: MouseEvent) => {
+  const onChevronClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     toggle(nodo.id);
   };
@@ -252,39 +245,46 @@ function NodoItem({
           styles.border,
         )}
       >
-        {/* Toggle Expandir */}
-        {tieneHijos ? (
-          <button
-            type="button"
-            onClick={onChevronClick}
-            className={cn(
-              "flex h-full min-h-12 w-11 shrink-0 cursor-pointer items-center justify-center transition-colors hover:bg-emerald-500/10",
-              styles.text,
-            )}
-            title={expanded ? "Colapsar" : "Expandir"}
-          >
-            <motion.div
-              animate={{ rotate: expanded ? 90 : 0 }}
-              transition={{ duration: 0.25, ease: ACCORDION_EASE }}
-            >
-              <ChevronRight className="size-4" strokeWidth={2.5} />
-            </motion.div>
-          </button>
-        ) : (
-          <div className="w-4 shrink-0" />
-        )}
-
-        {/* Info del Nodo */}
-        <div className="flex min-w-0 flex-1 flex-col justify-center py-3 pr-3 pl-1">
-          <div className="flex items-center gap-3">
-            <span
+        {/* Área clickeable para expandir/colapsar */}
+        <div
+          className={cn(
+            "flex min-w-0 flex-1 items-stretch transition-colors",
+            tieneHijos && "cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+          )}
+          onClick={tieneHijos ? onChevronClick : undefined}
+          role={tieneHijos ? "button" : undefined}
+        >
+          {/* Icono Expandir */}
+          {tieneHijos ? (
+            <div
               className={cn(
-                "flex size-9 shrink-0 items-center justify-center rounded-xl",
-                styles.bg,
+                "flex min-h-12 w-11 shrink-0 items-center justify-center",
                 styles.text,
               )}
+              title={expanded ? "Colapsar" : "Expandir"}
             >
-              <Icon className="size-4" strokeWidth={2.25} />
+              <motion.div
+                animate={{ rotate: expanded ? 90 : 0 }}
+                transition={{ duration: 0.25, ease: ACCORDION_EASE }}
+              >
+                <ChevronRight className="size-4" strokeWidth={2.5} />
+              </motion.div>
+            </div>
+          ) : (
+            <div className="w-4 shrink-0" />
+          )}
+
+          {/* Info del Nodo */}
+          <div className="flex min-w-0 flex-1 items-center justify-between py-3 pr-3 pl-1">
+            <div className="flex items-center gap-3 min-w-0">
+              <span
+                className={cn(
+                  "flex size-9 shrink-0 items-center justify-center rounded-xl",
+                  styles.bg,
+                  styles.text,
+                )}
+              >
+                <Icon className="size-4" strokeWidth={2.25} />
             </span>
 
             <div className="min-w-0 flex-1">
@@ -296,10 +296,10 @@ function NodoItem({
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
                     <Users className="size-2.5" />
                     {miembrosDirectos > 0 && tieneHijosConMiembros
-                      ? `${miembrosDirectos} miembros · ${totalMiembros} total`
+                      ? `${miembrosDirectos} ${miembrosDirectos === 1 ? 'miembro' : 'miembros'} · ${totalMiembros} total`
                       : miembrosDirectos > 0
-                        ? `${miembrosDirectos} miembros`
-                        : `${totalMiembros} miembros en total`}
+                        ? `${miembrosDirectos} ${miembrosDirectos === 1 ? 'miembro' : 'miembros'}`
+                        : `${totalMiembros} ${totalMiembros === 1 ? 'miembro' : 'miembros'} en total`}
                   </span>
                 )}
               </div>
@@ -319,35 +319,27 @@ function NodoItem({
 
           {/* Botón Ver Miembros */}
           {tieneResidentes && (
-            <div className="mt-2.5 ml-12 border-t border-border/40 pt-2">
+            <div className="ml-3 shrink-0" onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); setModalOpen(true); }}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-bold transition-colors",
+                  "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[9px] font-semibold tracking-wide transition-colors",
                   styles.border,
                   styles.text,
                   "hover:opacity-80",
                 )}
               >
-                <Users className="size-3.5" />
-                Ver miembros ({miembrosDirectos})
+                <Users className="size-3" />
+                <span>Ver <span className="hidden sm:inline">miembros</span></span>
               </button>
             </div>
           )}
-
-          {/* Modal Ver Miembros */}
-          <VerMiembrosModal
-            open={modalOpen}
-            onClose={() => setModalOpen(false)}
-            nombre={nodo.nombre}
-            tipo={nodo.tipo}
-            residentes={nodo.residentes}
-          />
+        </div>
         </div>
 
         {/* Acciones del Nodo */}
-        <RowAccionesNode nodo={nodo} adminHandlers={adminHandlers} />
+        <RowAccionesNode nodo={nodo} adminHandlers={adminHandlers} parentId={parentId} />
       </div>
 
       {/* Nodos Hijos Anidados */}
@@ -366,6 +358,7 @@ function NodoItem({
                   key={hijo.id}
                   nodo={hijo}
                   adminHandlers={adminHandlers}
+                  parentId={nodo.id}
                   depth={depth + 1}
                 />
               ))}
@@ -373,6 +366,15 @@ function NodoItem({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Modal Ver Miembros */}
+      <VerMiembrosModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        nombre={nodo.nombre}
+        tipo={nodo.tipo}
+        residentes={nodo.residentes}
+      />
     </div>
   );
 }
@@ -402,7 +404,7 @@ export function OrganizacionTerritorialTree({
                   <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
                     Municipio
                   </p>
-                  <h3 className="text-base font-black text-foreground md:text-lg">
+                  <h3 className="text-sm font-black text-foreground md:text-base leading-tight">
                     {municipioNombre ?? "Estructura Territorial del Municipio"}
                   </h3>
                 </div>
@@ -412,29 +414,34 @@ export function OrganizacionTerritorialTree({
                 <button
                   type="button"
                   onClick={() => adminHandlers.onAddComunidad(null, "microrregion")}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-emerald-700"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-emerald-700"
                 >
                   <Plus className="size-3.5" />
-                  Nueva Microrregión
+                  <span>
+                    <span className="hidden sm:inline">Nueva </span>
+                    Microrregión
+                  </span>
                 </button>
               )}
             </div>
           </div>
 
-          {/* Lista de Microrregiones */}
+          {/* Lista de Microrregiones con scroll horizontal en móviles */}
           {nodos.length === 0 ? (
             <div className="py-8 text-center text-xs font-medium text-muted-foreground">
               No hay microrregiones registradas. Crea la primera con el botón de arriba.
             </div>
           ) : (
-            <div className="space-y-2">
-              {nodos.map((nodo) => (
-                <NodoItem
-                  key={nodo.id}
-                  nodo={nodo}
-                  adminHandlers={adminHandlers}
-                />
-              ))}
+            <div className="overflow-x-auto pb-4 -mx-4 px-4 md:mx-0 md:px-0">
+              <div className="min-w-[600px] space-y-2">
+                {nodos.map((nodo) => (
+                  <NodoItem
+                    key={nodo.id}
+                    nodo={nodo}
+                    adminHandlers={adminHandlers}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>

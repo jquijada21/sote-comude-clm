@@ -7,7 +7,7 @@ import type { TipoLugar } from "./zod";
 export type TerritorialAdminHandlers = {
   onAddComunidad: (parentId: string | null, tipo: TipoLugar) => void;
   onAsignarResidentes: (comunidadId: string) => void;
-  onEditComunidad: (id: string, nombre: string, tipo: TipoLugar) => void;
+  onEditComunidad: (id: string, nombre: string, tipo: TipoLugar, tieneHijos: boolean, parentId: string | null) => void;
   onDeleteComunidad: (id: string, nombre: string, tipo: TipoLugar, tieneHijos: boolean) => void;
 };
 

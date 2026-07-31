@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEditarComunidad } from "../lib/hooks";
 import {
@@ -18,6 +18,7 @@ import {
   modalActionMessage,
   toast,
 } from "./TerritorioFormShell";
+import { Button } from "@/components/ui/button";
 
 export function VerEditarTerritorio({
   open,
@@ -25,12 +26,18 @@ export function VerEditarTerritorio({
   id,
   nombreInicial,
   tipo,
+  tieneHijos,
+  parentId,
+  onDelete,
 }: {
   open: boolean;
   onClose: () => void;
   id: string;
   nombreInicial: string;
   tipo: TipoLugar;
+  tieneHijos: boolean;
+  parentId: string | null;
+  onDelete: () => void;
 }) {
   const [nombre, setNombre] = useState(nombreInicial);
   const editarComunidad = useEditarComunidad();
@@ -46,7 +53,7 @@ export function VerEditarTerritorio({
     const values: ComunidadFormValues = {
       nombre: nombre.trim(),
       tipo,
-      parent_id: null,
+      parent_id: parentId,
     };
 
     const res = await editarComunidad.mutateAsync({ id, values });
@@ -82,9 +89,22 @@ export function VerEditarTerritorio({
         </div>
 
         <FormFooter>
-          <FormSubmitButton disabled={guardando}>
-            {guardando ? <Loader2 className="size-4 animate-spin" /> : "Guardar cambios"}
-          </FormSubmitButton>
+          <div className="flex flex-col gap-2 w-full">
+            <Button
+              type="button"
+              variant="destructive"
+              className="w-full rounded-xl font-bold"
+              onClick={onDelete}
+              disabled={guardando}
+            >
+              <Trash2 className="size-4" />
+              Eliminar
+            </Button>
+            
+            <FormSubmitButton disabled={guardando}>
+              {guardando ? <Loader2 className="size-4 animate-spin" /> : "Guardar cambios"}
+            </FormSubmitButton>
+          </div>
         </FormFooter>
       </motion.form>
     </TerritorioFormShell>

@@ -304,32 +304,6 @@ export function OrganizacionJerarquica() {
 
           {!isLoading && !isError && estructuraMostrada && (
             <>
-              {!estaVacio && (
-                <div className="mb-4 border-b border-border/50 px-4 pb-4 md:hidden">
-                  <div className="flex flex-nowrap items-center gap-4 overflow-x-auto text-xs text-muted-foreground">
-                    <span className="inline-flex shrink-0 items-center gap-1.5">
-                      <ListTree className="size-3.5 text-celeste-trifinio" />
-                      Añadir dependencia
-                    </span>
-                    <span className="inline-flex shrink-0 items-center gap-1.5">
-                      <Briefcase className="size-3.5 text-celeste-trifinio" />
-                      Añadir puesto
-                    </span>
-                    <span className="inline-flex shrink-0 items-center gap-1.5">
-                      <UserPlus className="size-3.5 text-celeste-trifinio" />
-                      Asignar persona
-                    </span>
-                    <span className="inline-flex shrink-0 items-center gap-1.5">
-                      <Pencil className="size-3.5 text-celeste-trifinio" />
-                      Editar
-                    </span>
-                    <span className="inline-flex shrink-0 items-center gap-1.5">
-                      <ChevronsDown className="size-3.5 text-celeste-trifinio" />
-                      Abrir / cerrar todo
-                    </span>
-                  </div>
-                </div>
-              )}
               <OrganizacionTree
                 estructura={estructuraMostrada}
                 admin={admin}

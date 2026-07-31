@@ -71,6 +71,8 @@ export function OrganizacionTerritorial() {
     id: string;
     nombre: string;
     tipo: TipoLugar;
+    tieneHijos: boolean;
+    parentId: string | null;
   } | null>(null);
 
   const [modalResidentes, setModalResidentes] = useState<{
@@ -94,9 +96,9 @@ export function OrganizacionTerritorial() {
     () => ({
       onAddComunidad: (parentId, tipo) => setModalCrear({ parentId, tipo }),
       onAsignarResidentes: (comunidadId) => {
-        function buscar(lista: typeof nodos): { nombre: string; tipo: TipoLugar } | null {
+        function buscar(lista: NodoTerritorial[]): NodoTerritorial | null {
           for (const n of lista) {
-            if (n.id === comunidadId) return { nombre: n.nombre, tipo: n.tipo };
+            if (n.id === comunidadId) return n;
             const r = buscar(n.hijos);
             if (r) return r;
           }
@@ -109,7 +111,8 @@ export function OrganizacionTerritorial() {
           tipo: encontrado?.tipo ?? "caserio",
         });
       },
-      onEditComunidad: (id, nombre, tipo) => setModalEditar({ id, nombre, tipo }),
+      onEditComunidad: (id, nombre, tipo, tieneHijos, parentId) => 
+        setModalEditar({ id, nombre, tipo, tieneHijos, parentId }),
       onDeleteComunidad: (id, nombre, tipo, tieneHijos) =>
         setModalEliminar({ id, nombre, tipo, tieneHijos }),
     }),
@@ -191,7 +194,7 @@ export function OrganizacionTerritorial() {
                   </div>
                   <div>
                     <h3 className="text-xs font-black uppercase tracking-wider text-blue-700 dark:text-blue-300">
-                      Microrregión
+                      {counts.microrregiones === 1 ? "Microrregión" : "Microrregiones"}
                     </h3>
                     <p className="text-[11px] font-semibold text-muted-foreground">
                       Nivel 1
@@ -213,7 +216,7 @@ export function OrganizacionTerritorial() {
                   </div>
                   <div>
                     <h3 className="text-xs font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
-                      Aldea
+                      {counts.aldeas === 1 ? "Aldea" : "Aldeas"}
                     </h3>
                     <p className="text-[11px] font-semibold text-muted-foreground">
                       Nivel 2
@@ -235,7 +238,7 @@ export function OrganizacionTerritorial() {
                   </div>
                   <div>
                     <h3 className="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-300">
-                      Caserío
+                      {counts.caserios === 1 ? "Caserío" : "Caseríos"}
                     </h3>
                     <p className="text-[11px] font-semibold text-muted-foreground">
                       Nivel 3
@@ -295,6 +298,17 @@ export function OrganizacionTerritorial() {
           id={modalEditar.id}
           nombreInicial={modalEditar.nombre}
           tipo={modalEditar.tipo}
+          tieneHijos={modalEditar.tieneHijos}
+          parentId={modalEditar.parentId}
+          onDelete={() => {
+            setModalEditar(null);
+            setModalEliminar({
+              id: modalEditar.id,
+              nombre: modalEditar.nombre,
+              tipo: modalEditar.tipo,
+              tieneHijos: modalEditar.tieneHijos,
+            });
+          }}
         />
       )}
 
@@ -322,6 +336,7 @@ export function OrganizacionTerritorial() {
               : `Se eliminará "${modalEliminar.nombre}" permanentemente.`
           }
           loading={eliminar.isPending}
+          hideConfirm={modalEliminar.tieneHijos}
         />
       )}
     </div>

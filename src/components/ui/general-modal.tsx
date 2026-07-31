@@ -143,6 +143,7 @@ interface ModalConfirmDeleteProps {
   title?: string;
   description?: string;
   loading?: boolean;
+  hideConfirm?: boolean;
 }
 
 export function ModalConfirmDelete({
@@ -152,6 +153,7 @@ export function ModalConfirmDelete({
   title = "¿Eliminar?",
   description = "Esta acción no se puede deshacer.",
   loading = false,
+  hideConfirm = false,
 }: ModalConfirmDeleteProps) {
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -166,27 +168,30 @@ export function ModalConfirmDelete({
           <p className="text-sm text-muted-foreground">{description}</p>
         </DialogHeader>
         <div className="mt-5 flex flex-col gap-2">
+          {!hideConfirm && (
+            <Button
+              variant="destructive"
+              className="w-full rounded-xl font-bold"
+              onClick={onConfirm}
+              disabled={loading}
+            >
+              {loading ? "Eliminando..." : "Sí, eliminar"}
+            </Button>
+          )}
           <Button
-            variant="destructive"
-            className="w-full rounded-xl font-bold"
-            onClick={onConfirm}
-            disabled={loading}
-          >
-            {loading ? "Eliminando..." : "Sí, eliminar"}
-          </Button>
-          <Button
-            variant="outline"
+            variant={hideConfirm ? "default" : "outline"}
             className="w-full rounded-xl font-bold"
             onClick={onClose}
             disabled={loading}
           >
-            Cancelar
+            {hideConfirm ? "Entendido" : "Cancelar"}
           </Button>
         </div>
       </DialogContent>
     </Dialog>
   );
 }
+
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
 const ERROR_MESSAGES: Record<string, string> = {

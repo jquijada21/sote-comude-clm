@@ -352,7 +352,10 @@ function NodoItem({
 
         {showRootActions && admin && (
           <div
-            className={cn(TREE_ACTIONS_BAR, "w-full shrink-0 md:w-auto")}
+            className={cn(
+              TREE_ACTIONS_BAR,
+              "w-full shrink-0 justify-end border-t border-t-celeste-trifinio/30 md:w-auto md:justify-start md:border-t-0",
+            )}
             onClick={stop}
           >
             <TreeActionButton

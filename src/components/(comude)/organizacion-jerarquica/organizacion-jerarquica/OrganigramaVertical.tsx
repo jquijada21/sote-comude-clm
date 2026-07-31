@@ -575,13 +575,13 @@ function OrgNode({
     : mostrarTitular
       ? ORG_CARD_H_TITULAR
       : ORG_CARD_H;
-  const foH = puedeAnimarTitular ? ORG_CARD_H_TITULAR : cardHVisual;
+  const foH = cardHVisual;
   const foW = ORG_FO_W;
   const cardFoY = -foH / 2;
   const railTopY = -nodeStrideY / 2;
 
   const cardClassName = cn(
-    "pointer-events-auto relative flex w-full flex-col overflow-hidden rounded-lg border text-center shadow-sm transition-[border-color,box-shadow,ring-color] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] hover:shadow-md",
+    "flex w-full flex-col justify-center overflow-hidden rounded-lg border text-center shadow-sm transition-[border-color,box-shadow,ring-color] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] hover:shadow-md",
     mostrarTitular
       ? "justify-between gap-0 px-2 py-1.5"
       : "items-center justify-center gap-0.5 px-2 py-1",
@@ -606,31 +606,25 @@ function OrgNode({
   };
 
   const titularRow = (
-    <AnimatePresence initial={false}>
-      {mostrarTitular ? (
-        <motion.div
-          key="titular"
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: ORG_CARD_ANIM_MS / 1000, ease: ORG_ACTIONS_EASE }}
-          className="w-full overflow-hidden"
+    <div
+      className={cn(
+        "w-full overflow-hidden",
+        mostrarTitular ? "block" : "hidden",
+      )}
+    >
+      <div className={cn("w-full shrink-0 border-t", separatorTone)} />
+      <div className="flex w-full min-w-0 shrink-0 items-center justify-center gap-1 py-1">
+        <UserRound className={cn("size-3 shrink-0", textTone)} />
+        <p
+          className={cn(
+            "line-clamp-1 min-w-0 text-[0.625rem] font-medium leading-tight",
+            textTone,
+          )}
         >
-          <div className={cn("w-full shrink-0 border-t", separatorTone)} />
-          <div className="flex w-full min-w-0 shrink-0 items-center justify-center gap-1 py-1">
-            <UserRound className={cn("size-3 shrink-0", textTone)} />
-            <p
-              className={cn(
-                "line-clamp-1 min-w-0 text-[0.625rem] font-medium leading-tight",
-                textTone,
-              )}
-            >
-              {titularCorto}
-            </p>
-          </div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+          {titularCorto}
+        </p>
+      </div>
+    </div>
   );
 
   const cardBody = (
@@ -679,11 +673,11 @@ function OrgNode({
     const parentLeftX = px - ORG_CARD_W / 2;
     const parentLeftMidY =
       parent.y - node.y + (forkOffset(parent, layout.forkBoost) - forkLift);
-    return `M ${parentLeftX},${parentLeftMidY} H ${ORG_RAIL_X} V ${railTopY}`;
+    return `M ${parentLeftX},${parentLeftMidY} H ${ORG_RAIL_X} V ${railTopY + forkLift}`;
   })();
 
   return (
-    <g transform={forkLift > 0 ? `translate(0, ${forkLift})` : undefined}>
+    <g>
       {esCadena && (
         <>
           {parentConnector && (
@@ -695,16 +689,16 @@ function OrgNode({
           )}
           <line
             x1={ORG_RAIL_X}
-            y1={esCadenaRaiz ? railTopY : -nodeStrideY}
+            y1={(esCadenaRaiz ? railTopY : -nodeStrideY) + forkLift}
             x2={ORG_RAIL_X}
-            y2={0}
+            y2={forkLift}
             className="org-link org-link--rail"
           />
           <line
             x1={ORG_RAIL_X}
-            y1={0}
+            y1={forkLift}
             x2={ORG_FO_X}
-            y2={0}
+            y2={forkLift}
             className="org-link org-link--rail"
           />
         </>
@@ -713,33 +707,19 @@ function OrgNode({
         width={foW}
         height={foH}
         x={ORG_FO_X}
-        y={cardFoY}
-        style={{ overflow: "visible", pointerEvents: "none" }}
+        y={cardFoY + forkLift}
+        style={{ overflow: "visible" }}
       >
-        {puedeAnimarTitular ? (
-          <div className="flex h-full w-full items-end justify-center">
-            <motion.div
-              ref={cardRef}
-              data-org-card=""
-              {...cardHandlers}
-              initial={false}
-              animate={{ height: cardHVisual }}
-              transition={{ duration: ORG_CARD_ANIM_MS / 1000, ease: ORG_ACTIONS_EASE }}
-              className={cardClassName}
-            >
-              {cardBody}
-            </motion.div>
-          </div>
-        ) : (
-          <div
-            ref={cardRef}
-            data-org-card=""
-            {...cardHandlers}
-            className={cn(cardClassName, "h-full w-full")}
-          >
-            {cardBody}
-          </div>
-        )}
+        <div
+          // @ts-expect-error: xmlns is necessary for Safari SVG foreignObject rendering
+          xmlns="http://www.w3.org/1999/xhtml"
+          ref={cardRef}
+          data-org-card=""
+          {...cardHandlers}
+          className={cn(cardClassName, "h-full w-full")}
+        >
+          {cardBody}
+        </div>
       </foreignObject>
 
       {tooltip ? (
@@ -1201,7 +1181,7 @@ export function OrganigramaModal({
         >
           <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border/60 bg-zinc-100 px-4 py-3 md:px-6 dark:bg-zinc-800">
             <div className="flex min-w-0 items-center gap-2.5">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-celeste-trifinio/30 bg-card text-celeste-trifinio">
+              <span className="hidden size-9 shrink-0 items-center justify-center rounded-xl border border-celeste-trifinio/30 bg-card text-celeste-trifinio md:flex">
                 <OrganigramaIcon className="size-4.5" />
               </span>
               <h2 className="truncate text-sm font-black text-foreground md:text-base">
