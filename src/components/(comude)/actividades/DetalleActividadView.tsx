@@ -495,8 +495,6 @@ export default function DetalleActividadView({
 
   useEffect(() => { setMounted(true); }, []);
 
-  useEffect(() => { setMounted(true); }, []);
-
   // Sincronizar agenda local con los props del servidor
   useEffect(() => {
     setOptimisticAgenda(actividad?.agenda || []);
