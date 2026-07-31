@@ -102,9 +102,8 @@ export default function Header() {
                       transition={{ duration: 0.6, ease: "easeOut" }}
                       className="flex flex-col gap-0 leading-none text-sm md:text-lg lg:text-xl font-extrabold tracking-tight"
                     >
-                      <span className="text-azul-trifinio dark:text-white">Observatorio</span>
+                      <span className="text-azul-trifinio dark:text-white">SOTE</span>
                       <span className="inline-flex items-baseline gap-1">
-                        <span className="text-azul-trifinio dark:text-white">Web</span>
                         <span className="font-light text-border/80">|</span>
                         <span
                           className="text-xs md:text-base lg:text-lg font-semibold text-celeste-trifinio tracking-normal"

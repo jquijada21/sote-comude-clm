@@ -105,17 +105,9 @@ export default function LogoTrifinioLogin({
             animate="visible"
             className="flex flex-col items-center justify-center text-center relative"
           >
-            <motion.h1
-              variants={titleVariants}
-              className="font-black text-azul-trifinio dark:text-white leading-[1] whitespace-nowrap text-[clamp(12px,4.5vw,1.5rem)] md:text-[1.5rem]"
-              style={{ fontFamily: "'Arial Black', sans-serif" }}
-            >
-              Sistema de Organización<br />Territorial Estratégica
-            </motion.h1>
-
             <motion.div
               variants={lineVariants}
-              className="w-[105%] h-[2px] mt-2 bg-azul-trifinio dark:bg-white origin-center"
+              className="w-[105%] h-[2px] mt-4 bg-azul-trifinio dark:bg-white origin-center"
             />
 
             <motion.p
