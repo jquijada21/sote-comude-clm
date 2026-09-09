@@ -200,7 +200,7 @@ export default function SignUp({
     logic.setName("");
     logic.setUsername("");
     logic.setPasswordValue(pass);
-    logic.setRol(creatableRoles[0] || "user");
+    logic.setRol(creatableRoles[0] || "cocode");
     logic.setOrganizacionId("");
     logic.setShowPassword(false);
     setPhoneNumber("");
@@ -326,7 +326,11 @@ export default function SignUp({
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: 20, opacity: 0 }}
                     action={logic.formAction}
-                    className="space-y-5"
+                    className={cn(
+                      effectiveRole === "super"
+                        ? "grid gap-5 md:grid-cols-2"
+                        : "space-y-5 flex flex-col"
+                    )}
                   >
                     <div className="grid gap-2">
                       <Label htmlFor="name">Nombre Completo</Label>
@@ -341,6 +345,11 @@ export default function SignUp({
                             "border-destructive ring-1 ring-destructive",
                         )}
                       />
+                      {logic.state?.errors?.name && (
+                        <p className="text-[10px] text-destructive font-bold px-1 italic">
+                          {logic.state.errors.name[0]}
+                        </p>
+                      )}
                     </div>
 
                     <div className="grid gap-2">
@@ -395,52 +404,6 @@ export default function SignUp({
                       )}
                     </div>
 
-                    <div className="grid gap-2">
-                      <Label htmlFor="rol">Rol</Label>
-                      <Select
-                        id="rol"
-                        name="rol"
-                        value={logic.rol}
-                        onChange={(e) => {
-                          const newRol = e.target.value;
-                          logic.setRol(newRol);
-                          if (!isObservatorioRole(newRol)) {
-                            logic.setOrganizacionId("");
-                          }
-                        }}
-                      >
-                        {creatableRoles.map((role) => (
-                          <option key={role} value={role}>
-                            {ROLE_LABELS[role] || role}
-                          </option>
-                        ))}
-                      </Select>
-                    </div>
-
-                    {showOrganizacion && (
-                      <div className="grid gap-2">
-                        <Label htmlFor="organizacion_id">
-                          Organización{" "}
-                          <span className="font-normal text-muted-foreground">
-                            (opcional)
-                          </span>
-                        </Label>
-                        <Select
-                          id="organizacion_id"
-                          name="organizacion_id"
-                          value={logic.organizacionId}
-                          onChange={(e) => logic.setOrganizacionId(e.target.value)}
-                        >
-                          <option value="">Sin organización</option>
-                          {organizaciones.map((org) => (
-                            <option key={org.id} value={org.id}>
-                              {org.nombre}
-                            </option>
-                          ))}
-                        </Select>
-                      </div>
-                    )}
-
                     {effectiveRole === "super" && (
                       <>
                         <div className="grid gap-2 z-20">
@@ -491,6 +454,57 @@ export default function SignUp({
                     )}
 
                     <div className="grid gap-2">
+                      <Label htmlFor="rol">Rol</Label>
+                      <Select
+                        id="rol"
+                        name="rol"
+                        value={logic.rol}
+                        onChange={(e) => {
+                          const newRol = e.target.value;
+                          logic.setRol(newRol);
+                          if (!isObservatorioRole(newRol)) {
+                            logic.setOrganizacionId("");
+                          }
+                        }}
+                      >
+                        {creatableRoles.map((role) => (
+                          <option key={role} value={role}>
+                            {ROLE_LABELS[role] || role}
+                          </option>
+                        ))}
+                      </Select>
+                      {logic.state?.errors?.rol && (
+                        <p className="text-[10px] text-destructive font-bold px-1 italic">
+                          {logic.state.errors.rol[0]}
+                        </p>
+                      )}
+                    </div>
+
+                    {showOrganizacion && (
+                      <div className="grid gap-2">
+                        <Label htmlFor="organizacion_id">
+                          Organización{" "}
+                          <span className="font-normal text-muted-foreground">
+                            (opcional)
+                          </span>
+                        </Label>
+                        <Select
+                          id="organizacion_id"
+                          name="organizacion_id"
+                          value={logic.organizacionId}
+                          onChange={(e) => logic.setOrganizacionId(e.target.value)}
+                        >
+                          <option value="">Sin organización</option>
+                          {organizaciones.map((org) => (
+                            <option key={org.id} value={org.id}>
+                              {org.nombre}
+                            </option>
+                          ))}
+                        </Select>
+                      </div>
+                    )}
+
+                    <div className="grid gap-2">
                       <div className="flex items-center justify-between">
                         <Label htmlFor="password">Contraseña</Label>
                         <div className="flex items-center gap-1.5 animate-pulse">
@@ -530,35 +544,31 @@ export default function SignUp({
                           )}
                         </button>
                       </div>
+                      {logic.state?.errors?.password && (
+                        <p className="text-[10px] text-destructive font-bold px-1 italic">
+                          {logic.state.errors.password[0]}
+                        </p>
+                      )}
                     </div>
 
                     {logic.state?.message && (
-                      <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2">
+                      <div className={cn(
+                        "rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2",
+                        effectiveRole === "super" && "md:col-span-2"
+                      )}>
                         <p className="text-xs text-destructive font-semibold">
                           {logic.state.message}
                         </p>
                       </div>
                     )}
-                    {logic.state?.errors?.name && (
-                      <p className="text-[10px] text-destructive font-bold px-1 italic -mt-3">
-                        {logic.state.errors.name[0]}
-                      </p>
-                    )}
-                    {logic.state?.errors?.password && (
-                      <p className="text-[10px] text-destructive font-bold px-1 italic -mt-3">
-                        {logic.state.errors.password[0]}
-                      </p>
-                    )}
-                    {logic.state?.errors?.rol && (
-                      <p className="text-[10px] text-destructive font-bold px-1 italic -mt-3">
-                        {logic.state.errors.rol[0]}
-                      </p>
-                    )}
 
                     <button
                       type="submit"
                       disabled={logic.isPending}
-                      className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold uppercase text-[10px] tracking-widest hover:opacity-90 transition-all active:scale-95 disabled:opacity-50 shadow-sm cursor-pointer"
+                      className={cn(
+                        "w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold uppercase text-[10px] tracking-widest hover:opacity-90 transition-all active:scale-95 disabled:opacity-50 shadow-sm cursor-pointer",
+                        effectiveRole === "super" && "md:col-span-2"
+                      )}
                     >
                       {logic.isPending ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -699,7 +709,10 @@ export default function SignUp({
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="w-full max-w-md relative"
+          className={cn(
+            "w-full relative",
+            effectiveRole === "super" ? "max-w-2xl" : "max-w-md"
+          )}
         >
           {card}
         </motion.div>
@@ -716,7 +729,10 @@ export default function SignUp({
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="w-full max-w-md relative"
+          className={cn(
+            "w-full relative",
+            effectiveRole === "super" ? "max-w-2xl" : "max-w-md"
+          )}
         >
           {card}
         </motion.div>

@@ -1,8 +1,6 @@
 export const ROLE_LABELS: Record<string, string> = {
-  user: "Usuario (Estándar)",
-  observatorio: "Observatorio",
-  "admin-observatorio": "Admin Observatorio",
-  comunicacion: "Comunicación",
+  cocode: "Cocode",
+  institucion: "Institución",
   admin: "Administrador",
   super: "Super Admin",
 };
@@ -10,10 +8,8 @@ export const ROLE_LABELS: Record<string, string> = {
 export const ROLE_ORDER = [
   "super",
   "admin",
-  "admin-observatorio",
-  "observatorio",
-  "comunicacion",
-  "user",
+  "cocode",
+  "institucion",
 ] as const;
 
 const ALL_KNOWN_ROLES = [...ROLE_ORDER];
@@ -27,9 +23,6 @@ export function isObservatorioRole(role: string | null | undefined): boolean {
 export function getManageableRoles(actorRole: string): string[] {
   if (actorRole === "super") return [...ALL_KNOWN_ROLES];
   if (actorRole === "admin") return ALL_KNOWN_ROLES.filter((r) => r !== "super");
-  if (actorRole === "admin-observatorio") {
-    return ALL_KNOWN_ROLES.filter((r) => isObservatorioRole(r));
-  }
   return [];
 }
 
@@ -49,7 +42,7 @@ export function isUserVisibleToActor(
   targetRole: string | null | undefined,
   actorRole: string,
 ): boolean {
-  const role = targetRole || "user";
+  const role = targetRole || "cocode";
   return getManageableRoles(actorRole).includes(role);
 }
 
